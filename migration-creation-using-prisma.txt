@@ -1,0 +1,151 @@
+Prisma Setup with PostgreSQL on Kubernetes
+
+1. Install Prisma
+
+Inside the microservice directory:
+
+npm install prisma@6.10.1 --save-dev
+
+npm install @prisma/client@6.10.1
+
+---
+
+2. Initialize Prisma
+
+npx prisma init
+
+This creates:
+
+prisma/
+schema.prisma
+
+.env
+
+---
+
+3. Configure Database Connection
+
+Update the .env file:
+
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/auth"
+
+Where:
+
+* Database Name = auth
+* Username = postgres
+* Password = postgres
+* Local Port = 5433
+
+---
+
+4. Define Database Schema
+
+Write all database models inside:
+
+prisma/schema.prisma
+
+Example:
+
+model User {
+id           String   @id @default(uuid())
+email        String   @unique
+phone        String   @unique
+passwordHash String
+
+createdAt    DateTime @default(now())
+updatedAt    DateTime @updatedAt
+}
+
+---
+
+5. Create Migration
+
+After updating schema.prisma:
+
+npx prisma migrate dev --name init
+
+Prisma will:
+
+* Generate migration SQL
+* Create tables in PostgreSQL
+* Generate Prisma Client
+
+Generated structure:
+
+prisma/
+├── schema.prisma
+└── migrations/
+└── xxxxx_init/
+└── migration.sql
+
+---
+
+6. Access PostgreSQL Running Inside Kubernetes
+
+Since PostgreSQL is running inside the Kubernetes cluster, pgAdmin cannot access it directly.
+
+Common approaches:
+
+1. Ingress Controller
+2. NodePort Service
+3. Port Forwarding (Used for Local Development)
+
+---
+
+7. Port Forward PostgreSQL Service
+
+kubectl port-forward svc/auth-postgres-cluster-ip-srv 5433:5432
+
+Meaning:
+
+Local Machine       Kubernetes
+
+localhost:5433  ->  PostgreSQL:5432
+
+Keep this terminal running while using Prisma or pgAdmin.
+
+---
+
+8. Connect pgAdmin
+
+Create a new server in pgAdmin.
+
+Connection Details:
+
+Host      : localhost
+Port      : 5433
+
+Database  : auth
+
+Username  : postgres
+Password  : postgres
+
+Use the values configured in the PostgreSQL Deployment:
+
+POSTGRES_DB
+POSTGRES_USER
+POSTGRES_PASSWORD
+
+Default values:
+
+POSTGRES_DB=auth
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+---
+
+9. Verify Tables
+
+After running migrations:
+
+npx prisma migrate dev --name init
+
+Refresh pgAdmin:
+
+Servers
+└── auth
+└── Schemas
+└── public
+└── Tables
+
+Your tables should now be visible.

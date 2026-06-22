@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-postgres-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-postgres
+  template:
+    metadata:
+      labels:
+        app: auth-postgres
+    spec:
+      containers:
+        - name: auth-postgres-container
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: auth
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-postgres-cluster-ip-srv
+spec:
+  selector:
+    app: auth-postgres
+  ports:
+    - name: auth-postgres-port
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

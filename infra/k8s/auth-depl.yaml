@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth-container
+          image: adarsh893/book-my-movie-auth
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@auth-postgres-cluster-ip-srv:5432/auth
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-cluster-ip-srv
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: auth-port
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
