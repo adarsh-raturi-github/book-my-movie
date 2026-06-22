@@ -6,6 +6,10 @@ A scalable movie ticket booking platform inspired by BookMyShow, built using Nod
 
 BookMyMovie allows users to browse movies, discover theaters, view show timings, reserve seats, and book tickets. The project is designed to demonstrate modern backend engineering concepts including microservices, distributed systems, role-based access control (RBAC), event-driven communication, and Saga orchestration.
 
+## Infrastructure diagram
+<img width="2837" height="4300" alt="Movie Booking Auth Service-2026-06-22-174452" src="https://github.com/user-attachments/assets/c7cbea0f-e56a-4b08-840e-103f75a552d0" />
+
+
 ## Features
 
 ### Authentication & Authorization
