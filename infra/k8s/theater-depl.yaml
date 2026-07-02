@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theater-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: theater
+  template:
+    metadata:
+      labels:
+        app: theater
+    spec:
+      containers:
+        - name: theater-container
+          image: adarsh893/book-my-movie-theater
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@theater-postgres-cluster-ip-srv:5432/theater
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: theater-cluster-ip-srv
+spec:
+  selector:
+    app: theater
+  ports:
+    - name: theater-port
+      protocol: TCP
+      port: 3002
+      targetPort: 3002

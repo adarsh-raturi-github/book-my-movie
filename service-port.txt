@@ -1,0 +1,4 @@
+3000-auth
+3001-movie
+3002-theater
+3003-show

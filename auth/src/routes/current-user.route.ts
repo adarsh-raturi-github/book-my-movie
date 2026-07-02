@@ -3,7 +3,7 @@ import { body } from "express-validator";
 import {
   nonAuthorizeMiddleware,
   requestValidatorMiddleware,
-} from "../../../packages/shared/src/middlewares";
+} from "@adarsh-tickets/shared";
 const router = express.Router();
 
 router.get(

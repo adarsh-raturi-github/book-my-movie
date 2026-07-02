@@ -3,8 +3,8 @@ import { body } from "express-validator";
 import {
   nonAuthorizeMiddleware,
   requestValidatorMiddleware,
-} from "../../../packages/shared/src/middlewares";
-import { BadRequestError } from "../../../packages/shared/src/errors";
+} from "@adarsh-tickets/shared";
+import { BadRequestError } from "@adarsh-tickets/shared";
 import { prisma } from "../prisma.client";
 import jwt from "jsonwebtoken";
 const router = express.Router();

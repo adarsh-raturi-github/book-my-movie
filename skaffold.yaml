@@ -15,3 +15,19 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+    - image: adarsh893/book-my-movie-movie
+      context: movie
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
+    - image: adarsh893/book-my-movie-theater
+      context: theater
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .

@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { requestValidatorMiddleware } from "../../../packages/shared/src/middlewares";
+import { requestValidatorMiddleware } from "@adarsh-tickets/shared";
 import { prisma } from "../prisma.client";
 import { PasswordManagementHelperService } from "../services";
 import jwt from "jsonwebtoken";
-import { BadRequestError } from "../../../packages/shared/src/errors";
+import { BadRequestError } from "@adarsh-tickets/shared";
 
 const router = express.Router();
 

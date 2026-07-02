@@ -2,7 +2,7 @@ import express from "express";
 import {
   currentUserMiddleware,
   errorHandlerMiddleware,
-} from "../../packages/shared/src/middlewares";
+} from "@adarsh-tickets/shared";
 import { signupRouter } from "./routes";
 
 const app = express();

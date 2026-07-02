@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { nonAuthorizeMiddleware } from "../../../packages/shared/src/middlewares";
+import { nonAuthorizeMiddleware } from "@adarsh-tickets/shared";
 const router = express.Router();
 
 router.post(

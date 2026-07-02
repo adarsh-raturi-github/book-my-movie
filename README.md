@@ -11,105 +11,106 @@ BookMyMovie allows users to browse movies, discover theaters, view show timings,
 <img width="2837" height="4300" alt="Movie Booking Auth Service-2026-06-22-174452" src="https://github.com/user-attachments/assets/c7cbea0f-e56a-4b08-840e-103f75a552d0" />
 
 https://miro.com/app/board/uXjVHDx8I3A=/?share_link_id=878606900324
+
 ## Features
 
 ### Authentication & Authorization
 
-* User registration and login
-* JWT-based authentication
-* Role-Based Access Control (RBAC)
-* Predefined roles:
+- User registration and login
+- JWT-based authentication
+- Role-Based Access Control (RBAC)
+- Predefined roles:
+  - ADMIN
+  - THEATER_OWNER
+  - USER
 
-  * ADMIN
-  * THEATER_OWNER
-  * USER
-* Permission-based route authorization
+- Permission-based route authorization
 
 ### Movie Management
 
-* Movie catalog management
-* Poster and trailer support
-* Bulk movie import support
-* Search and filtering capabilities
+- Movie catalog management
+- Poster and trailer support
+- Bulk movie import support
+- Search and filtering capabilities
 
 ### Theater Management
 
-* Theater creation and management
-* Screen management
-* Seat layout configuration
-* Theater owner onboarding
+- Theater creation and management
+- Screen management
+- Seat layout configuration
+- Theater owner onboarding
 
 ### Show Management
 
-* Show scheduling
-* Screen allocation
-* Show seat generation
-* Seat availability tracking
+- Show scheduling
+- Screen allocation
+- Show seat generation
+- Seat availability tracking
 
 ### Booking System
 
-* Seat reservation
-* Booking confirmation
-* Booking cancellation
-* Booking history
+- Seat reservation
+- Booking confirmation
+- Booking cancellation
+- Booking history
 
 ### Distributed Systems Concepts
 
-* Event-driven communication using NATS
-* Service-to-service messaging
-* Event sourcing patterns
-* Saga orchestration for booking workflows
-* Compensation handling for payment failures
+- Event-driven communication using NATS
+- Service-to-service messaging
+- Event sourcing patterns
+- Saga orchestration for booking workflows
+- Compensation handling for payment failures
 
 ### AI Incident Summarizer (Planned)
 
-* Consumes distributed system events
-* Generates human-readable incident summaries
-* Assists in operational monitoring and debugging
-* Demonstrates practical GenAI integration in backend systems
+- Consumes distributed system events
+- Generates human-readable incident summaries
+- Assists in operational monitoring and debugging
+- Demonstrates practical GenAI integration in backend systems
 
 ## Technology Stack
 
 ### Backend
 
-* Node.js
-* TypeScript
-* Express.js
+- Node.js
+- TypeScript
+- Express.js
 
 ### Database
 
-* PostgreSQL
-* Prisma ORM
+- PostgreSQL
+- Prisma ORM
 
 ### Infrastructure
 
-* Docker
-* Kubernetes
-* Skaffold
-* NGINX Ingress
+- Docker
+- Kubernetes
+- Skaffold
+- NGINX Ingress
 
 ### Messaging
 
-* NATS
+- NATS
 
 ### Authentication
 
-* JWT
-* RBAC
+- JWT
+- RBAC
 
 ### AI (Planned)
 
-* LangChain
-* LLM-based Incident Analysis
+- LangChain
+- LLM-based Incident Analysis
 
 ## Architecture
 
 Services are designed around business capabilities:
 
-* Auth Service
-* Movie Service
-* Theater Service
-* Booking Service
+- Auth Service
+- Movie Service
+- Theater Service
+- Booking Service
 
 Shared utilities are published as a reusable npm package:
 
@@ -119,10 +120,10 @@ Shared utilities are published as a reusable npm package:
 
 This project focuses on learning and demonstrating:
 
-* Microservice Architecture
-* Distributed Systems
-* Event-Driven Design
-* Saga Pattern
-* Kubernetes Deployment
-* High-Level System Design
-* Production-Oriented Backend Development
+- Microservice Architecture
+- Distributed Systems
+- Event-Driven Design
+- Saga Pattern
+- Kubernetes Deployment
+- High-Level System Design
+- Production-Oriented Backend Development
