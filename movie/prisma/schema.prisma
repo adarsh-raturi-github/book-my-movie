@@ -5,11 +5,59 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+enum MovieCertificate {
+  U
+  UA
+  A
+}
+
+enum MovieStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Movie {
+  id                String             @id @default(uuid()) @db.Uuid
+
+  title             String             @db.VarChar(255)
+  description       String             @db.Text
+
+  durationMinutes   Int                @map("duration_minutes")
+
+  languages         String[]
+  genres            String[]
+
+  certificate       MovieCertificate
+
+  releaseDate       DateTime           @map("release_date") @db.Date
+
+  posterKey         String             @map("poster_key") @db.VarChar(255)
+
+  status            MovieStatus        @default(ACTIVE)
+
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  deleted           Boolean            @default(false)
+  deletedAt         DateTime?          @map("deleted_at")
+
+  createdBy         String             @map("created_by") @db.Uuid
+  updatedBy         String?            @map("updated_by") @db.Uuid
+  deletedBy         String?            @map("deleted_by") @db.Uuid
+
+  @@index([title])
+  @@index([status])
+  @@index([releaseDate])
+
+  @@map("movies")
+}
+

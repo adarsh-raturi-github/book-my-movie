@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theater-postgres-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: theater-postgres
+  template:
+    metadata:
+      labels:
+        app: theater-postgres
+    spec:
+      containers:
+        - name: theater-postgres-container
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: theater
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: theater-postgres-cluster-ip-srv
+spec:
+  selector:
+    app: theater-postgres
+  ports:
+    - name: theater-postgres-port
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

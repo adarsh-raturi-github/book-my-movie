@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TheaterStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Theater {
+  id            String        @id @default(uuid()) @db.Uuid
+
+  name          String        @db.VarChar(255)
+  description   String?       @db.Text
+
+  ownerId       String        @map("owner_id") @db.Uuid
+
+  phoneNumber   String        @map("phone_number") @db.VarChar(20)
+
+  addressLine1  String        @map("address_line1") @db.VarChar(255)
+  addressLine2  String?       @map("address_line2") @db.VarChar(255)
+
+  city          String        @db.VarChar(100)
+  state         String        @db.VarChar(100)
+  country       String        @db.VarChar(100)
+  postalCode    String        @map("postal_code") @db.VarChar(20)
+
+  timezone      String        @db.VarChar(100)
+
+  status        TheaterStatus @default(ACTIVE)
+  deleted       Boolean        @default(false)
+
+  createdBy     String        @map("created_by") @db.Uuid
+  updatedBy     String?       @map("updated_by") @db.Uuid
+  deletedBy     String?       @map("deleted_by") @db.Uuid
+
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+  
+
+
+  // Relations
+  screens       Screen[]
+  @@unique([ownerId, name])
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([status])
+
+  @@map("theaters")
+}
+
+enum ScreenStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+}
+
+enum ScreenType {
+  REGULAR
+  IMAX
+  DOLBY
+  FOUR_DX
+}
+
+model Screen {
+  id            String        @id @default(uuid()) @db.Uuid
+
+  theaterId     String        @map("theater_id") @db.Uuid
+  theater        Theater       @relation(fields: [theaterId], references: [id], onDelete: Restrict)
+
+  name          String        @db.VarChar(100)
+  description   String?       @db.Text
+
+  type          ScreenType    @default(REGULAR)
+  status        ScreenStatus  @default(ACTIVE)
+
+  capacity      Int            @default(0)
+  deleted       Boolean        @default(false)
+
+
+  createdBy     String        @map("created_by") @db.Uuid
+  updatedBy     String?       @map("updated_by") @db.Uuid
+  deletedBy     String?       @map("deleted_by") @db.Uuid
+
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+
+  seats         Seat[]
+
+  @@unique([theaterId, name])
+
+  @@index([theaterId])
+  @@index([status])
+
+  @@map("screens")
+}
+
+enum SeatType {
+  REGULAR
+  PREMIUM
+  RECLINER
+  WHEELCHAIR
+}
+
+enum SeatStatus {
+  ACTIVE
+  BLOCKED
+  UNDER_MAINTENANCE
+}
+
+model Seat {
+  id          String      @id @default(uuid()) @db.Uuid
+
+  screenId    String      @map("screen_id") @db.Uuid
+  screen       Screen      @relation(fields: [screenId], references: [id], onDelete: Restrict)
+
+  rowLabel    String      @map("row_label") @db.VarChar(10)
+  seatNumber  Int         @map("seat_number")
+
+  seatType    SeatType    @map("seat_type") @default(REGULAR)
+  status      SeatStatus  @default(ACTIVE)
+
+  deleted       Boolean        @default(false)
+
+  createdBy   String      @map("created_by") @db.Uuid
+  updatedBy   String?     @map("updated_by") @db.Uuid
+  deletedBy   String?     @map("deleted_by") @db.Uuid
+
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
+
+  @@unique([screenId, rowLabel, seatNumber])
+
+  @@index([screenId])
+  @@index([status])
+
+  @@map("seats")
+}

@@ -17,3 +17,10 @@ spec:
                 name: auth-cluster-ip-srv
                 port:
                   number: 3000
+          - path: /api/movies/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: movie-cluster-ip-srv
+                port:
+                  number: 3000
