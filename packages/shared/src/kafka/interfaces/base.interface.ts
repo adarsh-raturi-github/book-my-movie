@@ -3,6 +3,8 @@ import { KafkaEventTypes, KafkaTopic } from "../enums";
 export interface SharedKafkaConfig {
   clientId: string;
   brokers: string[];
+  groupId: string;
+  serviceName: string;
 }
 export interface KafkaEventDefinition {
   topic: KafkaTopic;

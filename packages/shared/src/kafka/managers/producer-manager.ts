@@ -7,7 +7,9 @@ import {
 } from "../interfaces/base.interface";
 import { Message } from "@confluentinc/kafka-javascript";
 import { idGenerator } from "../../utils";
+import { getKafkaConfig } from "../config";
 
+const config = getKafkaConfig();
 /**
  * ProducerManager
  *
@@ -75,7 +77,7 @@ export class ProducerManager {
       eventId: idGenerator(),
       eventType: definition.eventType,
       occurredAt: new Date().toISOString(),
-      producer: process.env.SERVICE_NAME!,
+      producer: config.serviceName,
       correlationId,
       payload: value,
     };

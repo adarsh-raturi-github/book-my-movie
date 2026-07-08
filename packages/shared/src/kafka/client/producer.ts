@@ -1,11 +1,13 @@
+import { getKafkaConfig } from "../config";
 import { kafka } from "./kafka";
 
+const config = getKafkaConfig();
 export const producer = kafka.producer({
   kafkaJS: {
     acks: -1, // means all
   },
   // if multiple producer   "transactional.id": "booking-service-${process.env.HOST_NAME}",
-  "transactional.id": "booking-service-0",
+  "transactional.id": `${config.serviceName}-${config.clientId}`,
 
   "transaction.timeout.ms": 50000, //50seconds
   // # Batching, wait 20ms to collect more messages before sending
@@ -38,4 +40,4 @@ export const producer = kafka.producer({
    */ "queuing.strategy": "fifo",
 });
 
-// in js no serialization u have to convert using JSON.strigify()
+// in js no serialization u have to convert using JSON.strigify(),or AVRO
