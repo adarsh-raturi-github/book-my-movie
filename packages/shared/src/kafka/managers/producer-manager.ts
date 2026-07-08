@@ -38,7 +38,7 @@ const config = getKafkaConfig();
  * which is more performant and production-ready.
  * It supports async/await patterns for all producer operations.
  */
-export class ProducerManager {
+class ProducerManager {
   /**
    * Connect to Kafka
    *
@@ -209,3 +209,5 @@ export class ProducerManager {
     });
   }
 }
+
+export const producerManager = new ProducerManager();

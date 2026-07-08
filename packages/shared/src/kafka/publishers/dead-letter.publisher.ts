@@ -1,10 +1,10 @@
 import { producer } from "../client";
 import { KafkaTopic } from "../enums";
 import { DeadLetterMessage, DeadLetterPayload } from "../interfaces";
-import { ProducerManager } from "../managers/producer-manager";
+import { producerManager } from "../managers";
 
 export class DeadLetterPublisher {
-  producerManager = new ProducerManager();
+  private producerManager = producerManager;
 
   private getTopic(topic: KafkaTopic) {
     return `${topic}-dlt`;
