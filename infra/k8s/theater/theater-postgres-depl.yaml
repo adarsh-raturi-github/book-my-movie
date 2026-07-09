@@ -15,6 +15,17 @@ spec:
       containers:
         - name: theater-postgres-container
           image: postgres:16
+          args:
+            - "-c"
+            - "wal_level=logical"
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: POSTGRES_DB
               value: theater

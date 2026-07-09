@@ -1,0 +1,47 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnector
+
+metadata:
+  name: theater-outbox
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: bookmymovie-connect
+
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+
+  tasksMax: 1
+
+  config:
+    database.hostname: theater-postgres-cluster-ip-srv.default.svc.cluster.local
+    database.port: "5432"
+    database.user: postgres
+    database.password: postgres
+    database.dbname: theater
+
+    topic.prefix: theater
+
+    publication.name: theater_publication
+    slot.name: theater_slot
+
+    plugin.name: pgoutput
+
+    table.include.list: public.outbox
+
+    snapshot.mode: never
+
+    transforms: outbox
+    transforms.outbox.type: io.debezium.transforms.outbox.EventRouter
+
+    # Map your snake_case columns
+    transforms.outbox.table.field.event.id: id
+    transforms.outbox.table.field.event.key: aggregate_id
+    transforms.outbox.table.field.event.type: event_type
+    transforms.outbox.table.field.event.payload: payload
+
+    # Route events
+    transforms.outbox.route.by.field: topic
+    transforms.outbox.route.topic.replacement: ${routedByValue}
+
+    # Additional Kafka headers
+    transforms.outbox.table.fields.additional.placement: event_type:header:eventType,event_version:header:eventVersion

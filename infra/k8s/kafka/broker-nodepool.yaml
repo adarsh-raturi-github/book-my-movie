@@ -1,0 +1,19 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+
+metadata:
+  name: brokers
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: bookmymovie
+
+spec:
+  replicas: 1
+
+  roles:
+    - broker
+
+  storage:
+    type: persistent-claim
+    size: 2Gi
+    deleteClaim: true

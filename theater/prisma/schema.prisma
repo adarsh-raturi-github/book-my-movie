@@ -49,6 +49,7 @@ model Theater {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
+  entityVersion Int   @default(1)
   
 
 
@@ -99,6 +100,7 @@ model Screen {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
+  entityVersion Int   @default(1)
 
   seats         Seat[]
 
@@ -144,6 +146,7 @@ model Seat {
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
   deletedAt   DateTime?   @map("deleted_at")
+  entityVersion Int   @default(1)
 
   @@unique([screenId, rowLabel, seatNumber])
 
@@ -152,3 +155,29 @@ model Seat {
 
   @@map("seats")
 }
+
+model Outbox {
+  id String @id @default(uuid()) @db.Uuid
+
+  aggregateType String @map("aggregate_type")
+  aggregateId   String @db.Uuid @map("aggregate_id")
+
+  topic String
+
+  eventType    String @map("event_type")
+  eventVersion Int    @map("event_version")
+
+  payload Json
+
+  correlationId String? @db.Uuid @map("correlation_id")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([topic])
+  @@index([aggregateType, aggregateId])
+  @@index([createdAt])
+
+  @@map("outbox")
+}
+ 

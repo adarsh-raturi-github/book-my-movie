@@ -10,6 +10,7 @@ import {
 import express, { Request, Response } from "express";
 import { prisma } from "../../prisma.client";
 import { param } from "express-validator";
+import { screenPublisher } from "../../events/screen/publisher";
 
 const router = express.Router();
 
@@ -66,6 +67,11 @@ router.delete(
         deleted: true,
         deletedBy: req.currentUser!.id,
       },
+    });
+
+    await screenPublisher.deleted({
+      id,
+      entityVersion: screen.entityVersion,
     });
 
     return res.send();
