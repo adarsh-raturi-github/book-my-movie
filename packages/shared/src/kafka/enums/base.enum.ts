@@ -6,6 +6,13 @@ export enum KafkaTopic {
   BOOKING_TOPIC = "booking-topic",
 }
 
+export enum KafkaAggregateType {
+  MOVIE = "MOVIE",
+  SCREEN = "SCREEN",
+  THEATER = "THEATER",
+  SHOW = "SHOW",
+}
+
 export enum KafkaEventTypes {
   // MOVIE_CREATED = "movie-created",
   // MOVIE_UPDATED = "movie-updated",

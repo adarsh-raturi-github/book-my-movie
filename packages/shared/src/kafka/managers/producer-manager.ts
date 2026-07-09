@@ -6,7 +6,7 @@ import {
   PublishEvent,
 } from "../interfaces/base.interface";
 import { Message } from "@confluentinc/kafka-javascript";
-import { idGenerator } from "../../utils";
+import { createEnvelope, idGenerator } from "../../utils";
 import { getKafkaConfig } from "../config";
 
 const config = getKafkaConfig();
@@ -67,20 +67,6 @@ class ProducerManager {
    */
   async shutdown() {
     return producer.disconnect();
-  }
-  private createEnvelope<T>(
-    definition: KafkaEventDefinition,
-    value: T,
-    correlationId?: string,
-  ): EventEnvelope<T> {
-    return {
-      eventId: idGenerator(),
-      eventType: definition.eventType,
-      occurredAt: new Date().toISOString(),
-      producer: config.serviceName,
-      correlationId,
-      payload: value,
-    };
   }
 
   /** for health checks and DLT messages */
@@ -166,7 +152,7 @@ class ProducerManager {
 
     const topicMessages = await Promise.all(
       events.map(async (event) => {
-        const envelope = this.createEnvelope(
+        const envelope = createEnvelope(
           event.definition,
           event.value,
           event.correlationId,
