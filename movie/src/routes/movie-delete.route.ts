@@ -1,8 +1,10 @@
 import {
   checkPermission,
   nonAuthorizeMiddleware,
+  NotAuthorizeError,
   NotFoundError,
   Permission,
+  Role,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { prisma } from "../prisma.client";
@@ -23,6 +25,13 @@ router.delete(
     });
     if (!existingMovie) {
       throw new NotFoundError();
+    }
+
+    if (
+      existingMovie.createdBy !== req.currentUser?.id &&
+      req.currentUser?.role !== Role.ADMIN
+    ) {
+      throw new NotAuthorizeError("Cant delete a show");
     }
 
     const updatedMovie = await prisma.movie.update({

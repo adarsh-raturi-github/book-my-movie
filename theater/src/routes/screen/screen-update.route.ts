@@ -8,10 +8,13 @@ import {
   Permission,
   requestValidatorMiddleware,
   Role,
+  ScreenStatusEnum,
+  ScreenTypeEnum,
 } from "@adarsh-tickets/shared";
 import { body, param } from "express-validator";
 import { prisma } from "../../prisma.client";
 import { SCREEN_STATUS, SCREEN_TYPES, THEATER_STATUS } from "../../constants";
+import { screenPublisher } from "../../events/screen/publisher";
 const router = express.Router();
 
 router.patch(
@@ -125,6 +128,14 @@ router.patch(
         status,
         updatedBy: currentUser.id,
       },
+    });
+
+    await screenPublisher.updated({
+      id,
+      name: updatedScreen.name,
+      type: updatedScreen.type as ScreenTypeEnum,
+      status: updatedScreen.type as ScreenStatusEnum,
+      entityVersion: updatedScreen.entityVersion,
     });
 
     return res.send(updatedScreen);

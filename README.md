@@ -116,6 +116,80 @@ Shared utilities are published as a reusable npm package:
 
 @adarsh-tickets/shared
 
+```mermaid
+flowchart LR
+
+    Client
+
+    subgraph Theater Service
+
+        API[REST API]
+
+        Prisma
+
+    end
+
+    subgraph PostgreSQL
+
+        Screen[(screen)]
+
+        Outbox[(outbox)]
+
+        WAL[(WAL)]
+
+    end
+
+    subgraph Debezium
+
+        Publication
+
+        Slot
+
+        Connector
+
+        SMT[Outbox Event Router]
+
+    end
+
+    subgraph Kafka
+
+        Topic[(theater-topic)]
+    end
+
+    subgraph Show Service
+
+        Consumer
+
+        Projection[(Local Database)]
+
+    end
+
+    Client --> API
+
+    API --> Prisma
+
+    Prisma --> Screen
+
+    Prisma --> Outbox
+
+    Screen --> WAL
+    Outbox --> WAL
+
+    WAL --> Publication
+
+    Publication --> Slot
+
+    Slot --> Connector
+
+    Connector --> SMT
+
+    SMT --> Topic
+
+    Topic --> Consumer
+
+    Consumer --> Projection
+```
+
 ## Goals
 
 This project focuses on learning and demonstrating:

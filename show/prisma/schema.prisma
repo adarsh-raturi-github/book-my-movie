@@ -12,3 +12,219 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+enum ShowStatus {
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+model Show {
+  id             String      @id @default(uuid()) @db.Uuid
+
+  // References to local projection tables
+  movieId        String      @db.Uuid
+  screenId       String      @db.Uuid
+
+  status         ShowStatus  @default(SCHEDULED)
+
+  startTime      DateTime
+  endTime        DateTime
+  bookingOpenAt  DateTime
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  createdBy      String      @db.Uuid
+  updatedBy      String?     @db.Uuid
+
+  deleted        Boolean     @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?     @db.Uuid
+
+  // Relation to ShowSeat
+  showSeats      ShowSeat[]
+
+  @@index([movieId])
+  @@index([screenId])
+  @@index([status])
+  @@index([startTime])
+  @@index([bookingOpenAt])
+
+  // Useful for overlap checks
+  @@index([screenId, startTime])
+
+  @@map("shows")
+}
+
+enum ShowSeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+  BLOCKED
+}
+
+model ShowSeat {
+  id              String           @id @default(uuid()) @db.Uuid
+
+  // Business References
+  showId          String           @db.Uuid
+  seatId          String           @db.Uuid
+
+  // Snapshot Data
+  price           Decimal          @db.Decimal(10, 2)
+
+  // Booking State
+  status          ShowSeatStatus   @default(AVAILABLE)
+
+  lockExpiresAt   DateTime?
+
+  bookingId       String?          @db.Uuid
+
+  // Optimistic Locking
+  version         Int              @default(1)
+
+  // Audit Fields
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  createdBy       String           @db.Uuid
+  updatedBy       String?          @db.Uuid
+
+  deleted         Boolean          @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?          @db.Uuid
+
+  // Relations
+  show            Show             @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  @@unique([showId, seatId])
+
+  @@index([showId])
+  @@index([seatId])
+  @@index([status])
+  @@index([bookingId])
+  @@index([showId, status])
+  @@index([showId, lockExpiresAt])
+
+  @@map("show_seats")
+}
+
+
+enum ScreenStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+}
+
+enum ScreenType {
+  REGULAR
+  IMAX
+  DOLBY
+  FOUR_DX
+}
+
+model ScreenProjection {
+  id             String        @id @db.Uuid
+
+  theaterId      String        @db.Uuid
+
+  name           String
+
+  type           ScreenType
+
+  status         ScreenStatus
+
+  entityVersion Int   @default(1)
+  createdAt      DateTime
+
+  updatedAt      DateTime
+
+  @@unique([theaterId, name])
+
+  @@index([theaterId])
+
+  @@index([status])
+
+  @@map("screen_projections")
+}
+
+
+enum MovieCertificate {
+  U
+  UA
+  A
+}
+
+enum MovieStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model MovieProjection {
+  id                String        @id @db.Uuid
+
+  title             String        @db.VarChar(255)
+
+  durationMinutes   Int
+
+  language          String[]
+
+  certificate       MovieCertificate
+
+  genres            String[]
+
+  posterUrl         String?       @db.Text
+
+  status            MovieStatus
+
+  entityVersion     Int           @default(1)
+
+  createdAt         DateTime
+
+  updatedAt         DateTime
+
+  @@index([title])
+  @@index([status])
+  @@index([language])
+
+  @@map("movie_projections")
+}
+
+enum SeatType {
+  REGULAR
+  PREMIUM
+  RECLINER
+  WHEELCHAIR
+}
+
+enum SeatStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model SeatProjection {
+  id              String      @id @db.Uuid
+
+  screenId        String      @db.Uuid
+
+  rowLabel        String      @db.VarChar(10)
+
+  seatNumber      Int
+
+  seatType        SeatType
+
+  status          SeatStatus
+
+  entityVersion   Int         @default(1)
+
+  @@unique([screenId, rowLabel, seatNumber])
+
+  @@index([screenId])
+  @@index([status])
+  @@index([screenId, status])
+
+  @@map("seat_projections")
+}

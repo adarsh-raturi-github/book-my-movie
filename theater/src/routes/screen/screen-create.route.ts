@@ -7,12 +7,15 @@ import {
   Permission,
   requestValidatorMiddleware,
   Role,
+  ScreenStatusEnum,
+  ScreenTypeEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { prisma } from "../../prisma.client";
 import { ScreenStatus, TheaterStatus } from "@prisma/client";
 import { SCREEN_TYPES } from "../../constants";
+import { screenPublisher } from "../../events/screen/publisher";
 const router = express.Router();
 
 router.post(
@@ -89,6 +92,16 @@ router.post(
         capacity: 0,
       },
     });
+
+    await screenPublisher.created({
+      id: screen.id,
+      theaterId: screen.theaterId,
+      name: screen.name,
+      type: screen.type as ScreenTypeEnum,
+      status: screen.status as ScreenStatusEnum,
+      entityVersion: 1,
+    });
+
     return res.status(200).send(screen);
   },
 );

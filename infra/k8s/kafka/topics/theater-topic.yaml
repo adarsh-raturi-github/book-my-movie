@@ -1,0 +1,40 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+
+metadata:
+  name: theater-topic
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: bookmymovie
+
+spec:
+  topicName: theater-topic
+  partitions: 2
+
+  replicas: 1
+
+  config:
+    cleanup.policy: delete
+
+    retention.ms: 604800000
+
+    compression.type: producer
+
+    min.insync.replicas: 1
+
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: theater-topic-dlt
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: bookmymovie
+
+spec:
+  topicName: theater-topic-dlt
+  partitions: 2
+  replicas: 1
+  config:
+    cleanup.policy: delete
+    retention.ms: 2592000000 # 30 days

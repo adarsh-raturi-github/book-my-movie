@@ -8,7 +8,6 @@ import {
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { prisma } from "../../prisma.client";
-import { TheaterStatus } from "@prisma/client";
 import { TheaterStatusEnum } from "../../enums";
 const router = express.Router();
 

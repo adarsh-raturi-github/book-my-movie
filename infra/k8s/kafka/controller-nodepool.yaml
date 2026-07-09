@@ -1,0 +1,19 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+
+metadata:
+  name: controllers
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: bookmymovie
+
+spec:
+  replicas: 1
+
+  roles:
+    - controller
+
+  storage:
+    type: persistent-claim
+    size: 1Gi
+    deleteClaim: true

@@ -1,23 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: movie-postgres-depl
+  name: show-postgres-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: movie-postgres
+      app: show-postgres
   template:
     metadata:
       labels:
-        app: movie-postgres
+        app: show-postgres
     spec:
       containers:
-        - name: movie-postgres-container
+        - name: show-postgres-container
           image: postgres:16
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: POSTGRES_DB
-              value: movie
+              value: show
             - name: POSTGRES_USER
               value: postgres
             - name: POSTGRES_PASSWORD
@@ -29,12 +36,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: movie-postgres-cluster-ip-srv
+  name: show-postgres-cluster-ip-srv
 spec:
   selector:
-    app: movie-postgres
+    app: show-postgres
   ports:
-    - name: movie-postgres-port
+    - name: show-postgres-port
       protocol: TCP
       port: 5432
       targetPort: 5432
