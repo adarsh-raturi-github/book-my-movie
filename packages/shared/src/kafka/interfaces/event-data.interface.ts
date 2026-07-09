@@ -1,4 +1,9 @@
-import { ScreenStatusEnum, ScreenTypeEnum } from "../enums";
+import {
+  ScreenStatusEnum,
+  ScreenTypeEnum,
+  SeatStatusEnum,
+  SeatTypeEnum,
+} from "../enums";
 
 export interface IScreenCreateEventData {
   id: string;
@@ -18,6 +23,33 @@ export interface IScreenUpdateEventData {
 }
 
 export interface IScreenDeleteEventData {
+  id: string;
+  entityVersion: number;
+}
+
+// -------------------------------- SEATS------------------------------
+
+export interface ISeatCreateEventData {
+  id: string;
+  screenId: string;
+  rowLabel: string;
+  seatNumber: number;
+  seatType: SeatTypeEnum;
+  status: SeatStatusEnum;
+  entityVersion: number;
+}
+
+export interface ISeatUpdateEventData {
+  id: string;
+  screenId: string;
+  rowLabel: string;
+  seatNumber: number;
+  seatType: SeatTypeEnum;
+  status: SeatStatusEnum;
+  entityVersion: number;
+}
+
+export interface ISeatDeleteEventData {
   id: string;
   entityVersion: number;
 }

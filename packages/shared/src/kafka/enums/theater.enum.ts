@@ -16,3 +16,17 @@ export enum ScreenTypeEnum {
   DOLBY = "DOLBY",
   FOUR_DX = "FOUR_DX",
 }
+
+/// SEATS
+
+export enum SeatTypeEnum {
+  REGULAR = "REGULAR",
+  PREMIUM = "PREMIUM",
+  RECLINER = "RECLINER",
+  WHEELCHAIR = "WHEELCHAIR",
+}
+
+export enum SeatStatusEnum {
+  ACTIVE = "ACTIVE",
+  BLOCKED = "BLOCKED",
+}

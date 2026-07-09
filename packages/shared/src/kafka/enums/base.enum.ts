@@ -11,6 +11,7 @@ export enum KafkaAggregateType {
   SCREEN = "SCREEN",
   THEATER = "THEATER",
   SHOW = "SHOW",
+  SEAT = "SEAT",
 }
 
 export enum KafkaEventTypes {
@@ -30,9 +31,9 @@ export enum KafkaEventTypes {
   // SHOW_UPDATED = "show-updated",
   // SHOW_DELETED = "show-deleted",
 
-  // SEAT_CREATED = "seat-created",
-  // SEAT_UPDATED = "seat-updated",
-  // SEAT_DELETED = "seat-deleted",
+  SEAT_CREATED = "seat-created",
+  SEAT_UPDATED = "seat-updated",
+  SEAT_DELETED = "seat-deleted",
 
   /**
    * PAYMENT_INITIATED
