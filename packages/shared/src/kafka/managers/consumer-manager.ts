@@ -2,7 +2,7 @@ import { consumer } from "../client";
 import { KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
 import { deadLetterPublisher } from "../publishers";
-import { avroDeserializer } from "../registry/avro-deserailizer";
+import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
 import { MessageHandler } from "../types";
 
 /**
@@ -18,6 +18,7 @@ import { MessageHandler } from "../types";
  * - Documentation for common Kafka consumer patterns
  */
 export class ConsumerManager {
+  constructor(private readonly deserializer: IMessageDeserializationStrategy) {}
   private readonly handlers = new Map<KafkaTopic, MessageHandler<any>>();
   /**
    * Connect to Kafka
@@ -80,7 +81,10 @@ export class ConsumerManager {
         let event: T;
 
         try {
-          event = await avroDeserializer.deserialize(topic, message.value!);
+          event = await this.deserializer.deserialize(
+            topic as KafkaTopic,
+            message.value!,
+          );
         } catch (err) {
           await deadLetterPublisher.publish(
             topic as KafkaTopic,
