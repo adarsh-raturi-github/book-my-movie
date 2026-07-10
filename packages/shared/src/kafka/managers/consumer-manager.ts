@@ -1,5 +1,5 @@
 import { consumer } from "../client";
-import { KafkaTopic } from "../enums";
+import { KafkaEventTypes, KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
 import { deadLetterPublisher } from "../publishers";
 import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
@@ -19,7 +19,13 @@ import { MessageHandler } from "../types";
  */
 export class ConsumerManager {
   constructor(private readonly deserializer: IMessageDeserializationStrategy) {}
-  private readonly handlers = new Map<KafkaTopic, MessageHandler<any>>();
+  private readonly handlers = new Map<
+    KafkaEventTypes,
+    {
+      topic: KafkaTopic;
+      handler: MessageHandler<any>;
+    }
+  >();
   /**
    * Connect to Kafka
    *
@@ -47,8 +53,15 @@ export class ConsumerManager {
    * Topics must be subscribed before calling `consume()`.
    */
 
-  async register<T>(topic: KafkaTopic, handler: MessageHandler<T>) {
-    this.handlers.set(topic, handler);
+  async register<T>(
+    topic: KafkaTopic,
+    eventType: KafkaEventTypes,
+    handler: MessageHandler<T>,
+  ) {
+    this.handlers.set(eventType, {
+      topic,
+      handler,
+    });
   }
 
   /**
@@ -73,8 +86,11 @@ export class ConsumerManager {
    * The handler is invoked for every message received from Kafka.
    */
   async start<T>() {
+    const topics = [
+      ...new Set([...this.handlers.values()].map((l) => l.topic)),
+    ];
     await consumer.subscribe({
-      topics: [...this.handlers.keys()],
+      topics,
     });
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
@@ -102,45 +118,46 @@ export class ConsumerManager {
           return;
         }
 
-        const handler = this.handlers.get(topic as KafkaTopic);
-        if (!handler) {
-          throw new Error(`No handler registered for topic ${topic}`);
-        }
-        try {
-          await handler(event, {
-            topic,
-            partition,
-            offset: message.offset,
-            key: message.key?.toString(),
-          });
-          await this.commit(
-            topic as KafkaTopic,
-            partition,
-            (Number(message.offset) + 1).toString(),
-          );
-        } catch (err) {
-          if (err instanceof RetryableError) {
-            throw err; // Let Kafka retry
-          }
+        console.log(message);
+        // const { handler } = this.handlers.get();
+        // if (!handler) {
+        //   throw new Error(`No handler registered for topic ${topic}`);
+        // }
+        // try {
+        //   await handler(event, {
+        //     topic,
+        //     partition,
+        //     offset: message.offset,
+        //     key: message.key?.toString(),
+        //   });
+        //   await this.commit(
+        //     topic as KafkaTopic,
+        //     partition,
+        //     (Number(message.offset) + 1).toString(),
+        //   );
+        // } catch (err) {
+        //   if (err instanceof RetryableError) {
+        //     throw err; // Let Kafka retry
+        //   }
 
-          if (err instanceof NonRetryableError) {
-            await deadLetterPublisher.publish(
-              topic as KafkaTopic,
-              {
-                key: message.key,
-                value: message.value,
-              },
-              err as Error,
-            );
-            await this.commit(
-              topic as KafkaTopic,
-              partition,
-              (Number(message.offset) + 1).toString(),
-            );
-            return;
-          }
-          throw err;
-        }
+        //   if (err instanceof NonRetryableError) {
+        //     await deadLetterPublisher.publish(
+        //       topic as KafkaTopic,
+        //       {
+        //         key: message.key,
+        //         value: message.value,
+        //       },
+        //       err as Error,
+        //     );
+        //     await this.commit(
+        //       topic as KafkaTopic,
+        //       partition,
+        //       (Number(message.offset) + 1).toString(),
+        //     );
+        //     return;
+        //   }
+        //   throw err;
+        // }
       },
     });
   }
