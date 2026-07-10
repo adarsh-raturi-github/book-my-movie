@@ -2,7 +2,6 @@ import { SharedKafkaConfig } from "../interfaces";
 
 let kafkaConfig: SharedKafkaConfig | null = null;
 
-
 export function initializeKafka(config: SharedKafkaConfig): void {
   kafkaConfig = config;
 }
