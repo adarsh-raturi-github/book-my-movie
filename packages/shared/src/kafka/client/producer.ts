@@ -1,8 +1,8 @@
 import { getKafkaConfig } from "../config";
-import { kafka } from "./kafka";
+import { getKafkaClient } from "./kafka";
 
 const config = getKafkaConfig();
-export const producer = kafka.producer({
+export const producer = getKafkaClient().producer({
   kafkaJS: {
     acks: -1, // means all
   },

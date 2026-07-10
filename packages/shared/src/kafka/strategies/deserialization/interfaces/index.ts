@@ -1,1 +1,1 @@
-export * from "./message-deserialization.interface";
+export * from "./deserialization.interface";
