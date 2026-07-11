@@ -9,6 +9,7 @@ export interface SharedKafkaConfig {
 export interface KafkaEventDefinition {
   topic: KafkaTopic;
   eventType: KafkaEventTypes;
+  serviceName: string;
 }
 
 export interface PublishEvent<T> {

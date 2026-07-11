@@ -1,9 +1,5 @@
 import { avroSerializer } from "../registry/avro-serializer";
-import {
-  EventEnvelope,
-  KafkaEventDefinition,
-  PublishEvent,
-} from "../interfaces/base.interface";
+import { PublishEvent } from "../interfaces/base.interface";
 import { Message } from "@confluentinc/kafka-javascript";
 import { createEnvelope, idGenerator } from "../../utils";
 import { getKafkaClient } from "../client";

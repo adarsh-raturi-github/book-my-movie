@@ -10,7 +10,7 @@ export const createEnvelope = <T>(
     eventId: idGenerator(),
     eventType: definition.eventType,
     occurredAt: new Date().toISOString(),
-    producer: getKafkaConfig().serviceName,
+    producer: definition.serviceName,
     correlationId,
     payload: value,
   };
