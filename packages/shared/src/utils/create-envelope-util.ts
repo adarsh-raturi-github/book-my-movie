@@ -1,7 +1,6 @@
 import { EventEnvelope, getKafkaConfig, KafkaEventDefinition } from "../kafka";
 import { idGenerator } from "./id-generator.util";
 
-const config = ();
 export const createEnvelope = <T>(
   definition: KafkaEventDefinition,
   value: T,
@@ -11,7 +10,7 @@ export const createEnvelope = <T>(
     eventId: idGenerator(),
     eventType: definition.eventType,
     occurredAt: new Date().toISOString(),
-    producer: config.serviceName,
+    producer: getKafkaConfig().serviceName,
     correlationId,
     payload: value,
   };
