@@ -1,7 +1,7 @@
 import { EventEnvelope, getKafkaConfig, KafkaEventDefinition } from "../kafka";
 import { idGenerator } from "./id-generator.util";
 
-const config = getKafkaConfig();
+const config = ();
 export const createEnvelope = <T>(
   definition: KafkaEventDefinition,
   value: T,

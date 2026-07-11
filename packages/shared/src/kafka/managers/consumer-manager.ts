@@ -1,4 +1,6 @@
-import { consumer } from "../client";
+import { Consumer } from "@confluentinc/kafka-javascript/types/kafkajs";
+import { getKafkaClient } from "../client";
+import { getKafkaConfig } from "../config";
 import { KafkaEventTypes, KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
 import { deadLetterPublisher } from "../publishers";
@@ -18,7 +20,19 @@ import { MessageHandler } from "../types";
  * - Documentation for common Kafka consumer patterns
  */
 export class ConsumerManager {
-  constructor(private readonly deserializer: IMessageDeserializationStrategy) {}
+  private consumer: Consumer;
+  constructor(private readonly deserializer: IMessageDeserializationStrategy) {
+    this.consumer = getKafkaClient().consumer({
+      // by default auto commit
+      kafkaJS: {
+        groupId: getKafkaConfig().groupId, // Which group consumer needs to join
+      },
+      "bootstrap.servers": getKafkaConfig().brokers.join(","),
+      "auto.offset.reset": "latest",
+      "isolation.level": "read_committed",
+      "auto.commit.enable": false,
+    });
+  }
   private readonly handlers = new Map<
     KafkaEventTypes,
     {
@@ -33,7 +47,7 @@ export class ConsumerManager {
    * Must be called before subscribing or consuming messages.
    */
   async initialize() {
-    await consumer.connect();
+    await this.consumer.connect();
   }
 
   /**
@@ -43,7 +57,7 @@ export class ConsumerManager {
    * Ensures any outstanding work is completed before shutdown.
    */
   async shutdown() {
-    await consumer.disconnect();
+    await this.consumer.disconnect();
   }
 
   /**
@@ -71,7 +85,7 @@ export class ConsumerManager {
    * after a restart or rebalance.
    */
   async commit(topic: KafkaTopic, partition: number, offset: string) {
-    return consumer.commitOffsets([
+    return this.consumer.commitOffsets([
       {
         topic,
         partition,
@@ -89,10 +103,10 @@ export class ConsumerManager {
     const topics = [
       ...new Set([...this.handlers.values()].map((l) => l.topic)),
     ];
-    await consumer.subscribe({
+    await this.consumer.subscribe({
       topics,
     });
-    await consumer.run({
+    await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         let event: T;
 
