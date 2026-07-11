@@ -131,12 +131,15 @@ export class ConsumerManager {
           );
           return;
         }
-
-        console.log(event);
         const handler = this.handlers.get(
           event.eventType as KafkaEventTypes,
         )?.handler;
         if (!handler) {
+          await this.commit(
+            topic as KafkaTopic,
+            partition,
+            (Number(message.offset) + 1).toString(),
+          );
           throw new Error(`No handler registered for topic ${topic}`);
         }
         try {
@@ -152,8 +155,38 @@ export class ConsumerManager {
             (Number(message.offset) + 1).toString(),
           );
         } catch (err) {
-          if (err instanceof RetryableError) {
-            throw err; // Let Kafka retry
+          try {
+            if (err instanceof RetryableError) {
+              await this.executeWithRety(() =>
+                handler(event, {
+                  topic,
+                  partition,
+                  offset: message.offset,
+                  key: message.key?.toString(),
+                }),
+              );
+              await this.commit(
+                topic as KafkaTopic,
+                partition,
+                (Number(message.offset) + 1).toString(),
+              );
+              return;
+            }
+          } catch (err) {
+            await deadLetterPublisher.publish(
+              topic as KafkaTopic,
+              {
+                key: message.key,
+                value: message.value,
+              },
+              err as Error,
+            );
+            await this.commit(
+              topic as KafkaTopic,
+              partition,
+              (Number(message.offset) + 1).toString(),
+            );
+            return;
           }
 
           if (err instanceof NonRetryableError) {
@@ -176,5 +209,22 @@ export class ConsumerManager {
         }
       },
     });
+  }
+  private async executeWithRety(fn: () => Promise<void>, retries = 3) {
+    let delay = 1000;
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (!(err instanceof RetryableError)) {
+          throw err;
+        }
+        if (i === retries - 1) {
+          throw err;
+        }
+        await new Promise((r) => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
   }
 }
