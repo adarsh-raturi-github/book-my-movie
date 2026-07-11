@@ -1,4 +1,3 @@
-import { producer } from "../client";
 import { KafkaTopic } from "../enums";
 import { DeadLetterMessage, DeadLetterPayload } from "../interfaces";
 import { producerManager } from "../managers";
