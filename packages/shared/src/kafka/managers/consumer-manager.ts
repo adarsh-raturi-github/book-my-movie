@@ -20,19 +20,8 @@ import { MessageHandler } from "../types";
  * - Documentation for common Kafka consumer patterns
  */
 export class ConsumerManager {
-  private consumer: Consumer;
-  constructor(private readonly deserializer: IMessageDeserializationStrategy) {
-    this.consumer = getKafkaClient().consumer({
-      // by default auto commit
-      kafkaJS: {
-        groupId: getKafkaConfig().groupId, // Which group consumer needs to join
-      },
-      "bootstrap.servers": getKafkaConfig().brokers.join(","),
-      "auto.offset.reset": "latest",
-      "isolation.level": "read_committed",
-      "auto.commit.enable": false,
-    });
-  }
+  private consumer!: Consumer;
+  constructor(private readonly deserializer: IMessageDeserializationStrategy) {}
   private readonly handlers = new Map<
     KafkaEventTypes,
     {
@@ -47,6 +36,16 @@ export class ConsumerManager {
    * Must be called before subscribing or consuming messages.
    */
   async initialize() {
+    this.consumer = getKafkaClient().consumer({
+      // by default auto commit
+      kafkaJS: {
+        groupId: getKafkaConfig().groupId, // Which group consumer needs to join
+      },
+      "bootstrap.servers": getKafkaConfig().brokers.join(","),
+      "auto.offset.reset": "latest",
+      "isolation.level": "read_committed",
+      "auto.commit.enable": false,
+    });
     await this.consumer.connect();
   }
 

@@ -35,8 +35,19 @@ import { getKafkaConfig } from "../config";
  * It supports async/await patterns for all producer operations.
  */
 class ProducerManager {
-  producer: Producer;
-  constructor() {
+  producer!: Producer;
+  /**
+   * Connect to Kafka
+   *
+   * Establishes the producer connection to the Kafka cluster.
+   * Must be called before any publishing operations.
+   *
+   * This internally:
+   * 1. Resolves broker addresses from bootstrap servers
+   * 2. Establishes network connections to brokers
+   * 3. Initializes the producer buffers
+   */
+  async initialize() {
     this.producer = getKafkaClient().producer({
       kafkaJS: {
         acks: -1, // means all
@@ -74,19 +85,6 @@ class ProducerManager {
        * Producer instantation will fail if user-supplied configuration is incompatible.
        */ "queuing.strategy": "fifo",
     });
-  }
-  /**
-   * Connect to Kafka
-   *
-   * Establishes the producer connection to the Kafka cluster.
-   * Must be called before any publishing operations.
-   *
-   * This internally:
-   * 1. Resolves broker addresses from bootstrap servers
-   * 2. Establishes network connections to brokers
-   * 3. Initializes the producer buffers
-   */
-  async initialize() {
     return this.producer.connect();
   }
 
