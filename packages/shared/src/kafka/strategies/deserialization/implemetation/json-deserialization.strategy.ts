@@ -3,6 +3,7 @@ import { IMessageDeserializationStrategy } from "../interfaces";
 
 export class JsonDesrialization implements IMessageDeserializationStrategy {
   deserialize(_topic: KafkaTopic, message: Buffer) {
-    return JSON.parse(message?.toString());
+    /** connector itself stringify one time extra so have to parse two times */
+    return JSON.parse(JSON.parse(message?.toString()));
   }
 }

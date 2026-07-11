@@ -6,6 +6,7 @@ import { NonRetryableError, RetryableError } from "../errors";
 import { deadLetterPublisher } from "../publishers";
 import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
 import { MessageHandler } from "../types";
+import { EventEnvelope } from "../interfaces";
 
 /**
  * ConsumerManager
@@ -107,7 +108,7 @@ export class ConsumerManager {
     });
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        let event: T;
+        let event: EventEnvelope<T>;
 
         try {
           event = await this.deserializer.deserialize(
@@ -131,46 +132,48 @@ export class ConsumerManager {
           return;
         }
 
-        console.log(message);
-        // const { handler } = this.handlers.get();
-        // if (!handler) {
-        //   throw new Error(`No handler registered for topic ${topic}`);
-        // }
-        // try {
-        //   await handler(event, {
-        //     topic,
-        //     partition,
-        //     offset: message.offset,
-        //     key: message.key?.toString(),
-        //   });
-        //   await this.commit(
-        //     topic as KafkaTopic,
-        //     partition,
-        //     (Number(message.offset) + 1).toString(),
-        //   );
-        // } catch (err) {
-        //   if (err instanceof RetryableError) {
-        //     throw err; // Let Kafka retry
-        //   }
+        console.log(event);
+        const handler = this.handlers.get(
+          event.eventType as KafkaEventTypes,
+        )?.handler;
+        if (!handler) {
+          throw new Error(`No handler registered for topic ${topic}`);
+        }
+        try {
+          await handler(event, {
+            topic,
+            partition,
+            offset: message.offset,
+            key: message.key?.toString(),
+          });
+          await this.commit(
+            topic as KafkaTopic,
+            partition,
+            (Number(message.offset) + 1).toString(),
+          );
+        } catch (err) {
+          if (err instanceof RetryableError) {
+            throw err; // Let Kafka retry
+          }
 
-        //   if (err instanceof NonRetryableError) {
-        //     await deadLetterPublisher.publish(
-        //       topic as KafkaTopic,
-        //       {
-        //         key: message.key,
-        //         value: message.value,
-        //       },
-        //       err as Error,
-        //     );
-        //     await this.commit(
-        //       topic as KafkaTopic,
-        //       partition,
-        //       (Number(message.offset) + 1).toString(),
-        //     );
-        //     return;
-        //   }
-        //   throw err;
-        // }
+          if (err instanceof NonRetryableError) {
+            await deadLetterPublisher.publish(
+              topic as KafkaTopic,
+              {
+                key: message.key,
+                value: message.value,
+              },
+              err as Error,
+            );
+            await this.commit(
+              topic as KafkaTopic,
+              partition,
+              (Number(message.offset) + 1).toString(),
+            );
+            return;
+          }
+          throw err;
+        }
       },
     });
   }
