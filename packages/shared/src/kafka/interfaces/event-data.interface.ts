@@ -1,4 +1,6 @@
 import {
+  MovieCertificateEnum,
+  MovieStatusEnum,
   ScreenStatusEnum,
   ScreenTypeEnum,
   SeatStatusEnum,
@@ -50,6 +52,36 @@ export interface ISeatUpdateEventData {
 }
 
 export interface ISeatDeleteEventData {
+  id: string;
+  entityVersion: number;
+}
+
+//-------------------------------- MOVIE---------------------------------
+export interface IMovieCreatedEventData {
+  id: string;
+  title: string;
+  durationMinutes: number;
+  language: string[];
+  certificate: MovieCertificateEnum[];
+  genres: string[];
+  posterUrl: string;
+  status: MovieStatusEnum;
+  entityVersion: number;
+}
+
+export interface IMovieUpdateEventData {
+  id: string;
+  title: string;
+  durationMinutes: number;
+  language: string[];
+  certificate: MovieCertificateEnum[];
+  genres: string[];
+  posterUrl: string;
+  status: MovieStatusEnum;
+  entityVersion: number;
+}
+
+export interface IMovieDeleteEventDate {
   id: string;
   entityVersion: number;
 }
