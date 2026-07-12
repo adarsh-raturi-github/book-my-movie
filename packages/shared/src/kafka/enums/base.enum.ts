@@ -15,9 +15,9 @@ export enum KafkaAggregateType {
 }
 
 export enum KafkaEventTypes {
-  // MOVIE_CREATED = "movie-created",
-  // MOVIE_UPDATED = "movie-updated",
-  // MOVIE_DELETED = "movie-deleted",
+  MOVIE_CREATED = "movie-created",
+  MOVIE_UPDATED = "movie-updated",
+  MOVIE_DELETED = "movie-deleted",
 
   THEATER_CREATED = "theater-created",
   THEATER_UPDATED = "theater-updated",
