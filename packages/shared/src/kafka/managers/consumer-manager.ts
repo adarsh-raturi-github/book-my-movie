@@ -135,12 +135,22 @@ export class ConsumerManager {
           event.eventType as KafkaEventTypes,
         )?.handler;
         if (!handler) {
+          await deadLetterPublisher.publish(
+            topic as KafkaTopic,
+            {
+              key: message.key,
+              value: message.value,
+            },
+            new NonRetryableError(
+              `No handler registered for event type ${event.eventType}`,
+            ),
+          );
           await this.commit(
             topic as KafkaTopic,
             partition,
             (Number(message.offset) + 1).toString(),
           );
-          throw new Error(`No handler registered for topic ${topic}`);
+          return;
         }
         try {
           await handler(event, {
@@ -173,14 +183,14 @@ export class ConsumerManager {
               return;
             }
           } catch (err) {
-            // await deadLetterPublisher.publish(
-            //   topic as KafkaTopic,
-            //   {
-            //     key: message.key,
-            //     value: message.value,
-            //   },
-            //   err as Error,
-            // );
+            await deadLetterPublisher.publish(
+              topic as KafkaTopic,
+              {
+                key: message.key,
+                value: message.value,
+              },
+              err as Error,
+            );
             await this.commit(
               topic as KafkaTopic,
               partition,
