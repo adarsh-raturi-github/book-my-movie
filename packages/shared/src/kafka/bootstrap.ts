@@ -1,7 +1,6 @@
 import { ProducerManager } from "./managers/producer-manager";
 import { ConsumerManager } from "./managers/consumer-manager";
 import { DeadLetterPublisher } from "./publishers/dead-letter.publisher";
-import { JsonDeserialization } from "./strategies";
 import { KafkaBootstrapOptions } from "./interfaces";
 
 export async function createKafka(options: KafkaBootstrapOptions) {
