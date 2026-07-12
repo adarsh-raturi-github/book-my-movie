@@ -1,7 +1,6 @@
 import { KafkaTopic } from "../enums";
 import { DeadLetterMessage, DeadLetterPayload } from "../interfaces";
 import { ProducerManager } from "../managers";
-import { producerManager } from "../managers/producer-manager";
 
 export class DeadLetterPublisher {
   constructor(private readonly producerManager: ProducerManager) {}
@@ -26,5 +25,3 @@ export class DeadLetterPublisher {
     });
   }
 }
-
-export const deadLetterPublisher = new DeadLetterPublisher(producerManager);

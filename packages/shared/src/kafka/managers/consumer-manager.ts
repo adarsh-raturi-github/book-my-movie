@@ -3,10 +3,10 @@ import { getKafkaClient } from "../client";
 import { getKafkaConfig } from "../config";
 import { KafkaEventTypes, KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
-import { deadLetterPublisher } from "../publishers";
 import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
 import { MessageHandler } from "../types";
 import { EventEnvelope } from "../interfaces";
+import { DeadLetterPublisher } from "../publishers";
 
 /**
  * ConsumerManager
@@ -22,7 +22,10 @@ import { EventEnvelope } from "../interfaces";
  */
 export class ConsumerManager {
   private consumer!: Consumer;
-  constructor(private readonly deserializer: IMessageDeserializationStrategy) {}
+  constructor(
+    private readonly deserializer: IMessageDeserializationStrategy,
+    private readonly deadLetterPublisher: DeadLetterPublisher,
+  ) {}
   private readonly handlers = new Map<
     KafkaEventTypes,
     {
@@ -116,7 +119,7 @@ export class ConsumerManager {
             message.value!,
           );
         } catch (err) {
-          await deadLetterPublisher.publish(
+          await this.deadLetterPublisher.publish(
             topic as KafkaTopic,
             {
               key: message.key,
@@ -135,7 +138,7 @@ export class ConsumerManager {
           event.eventType as KafkaEventTypes,
         )?.handler;
         if (!handler) {
-          await deadLetterPublisher.publish(
+          await this.deadLetterPublisher.publish(
             topic as KafkaTopic,
             {
               key: message.key,
@@ -183,7 +186,7 @@ export class ConsumerManager {
               return;
             }
           } catch (err) {
-            await deadLetterPublisher.publish(
+            await this.deadLetterPublisher.publish(
               topic as KafkaTopic,
               {
                 key: message.key,
@@ -200,7 +203,7 @@ export class ConsumerManager {
           }
 
           if (err instanceof NonRetryableError) {
-            await deadLetterPublisher.publish(
+            await this.deadLetterPublisher.publish(
               topic as KafkaTopic,
               {
                 key: message.key,

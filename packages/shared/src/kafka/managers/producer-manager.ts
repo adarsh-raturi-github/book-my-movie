@@ -229,5 +229,3 @@ export class ProducerManager {
     });
   }
 }
-
-export const producerManager = new ProducerManager();

@@ -1,4 +1,5 @@
 import { KafkaEventTypes, KafkaTopic } from "../enums";
+import { IMessageDeserializationStrategy } from "../strategies";
 
 export interface SharedKafkaConfig {
   clientId: string;
@@ -28,4 +29,8 @@ export interface EventEnvelope<T> {
   producer: string;
   correlationId?: string;
   payload: T;
+}
+
+export interface KafkaBootstrapOptions {
+  deserializer: IMessageDeserializationStrategy;
 }
