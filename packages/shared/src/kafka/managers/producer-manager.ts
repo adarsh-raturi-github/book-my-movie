@@ -52,10 +52,10 @@ export class ProducerManager {
       kafkaJS: {
         acks: -1, // means all
       },
-      // if multiple producer   "transactional.id": "booking-service-${process.env.HOST_NAME}",
-      "transactional.id": `${getKafkaConfig().serviceName}-${getKafkaConfig().clientId}`,
+      // // if multiple producer   "transactional.id": "booking-service-${process.env.HOST_NAME}",
+      // "transactional.id": `${getKafkaConfig().serviceName}-${getKafkaConfig().clientId}`,
 
-      "transaction.timeout.ms": 50000, //50seconds
+      //   "transaction.timeout.ms": 50000, //50seconds
       // # Batching, wait 20ms to collect more messages before sending
       "linger.ms": "20",
       //    Max batch size, send when batch reaches 32KB (even if linger.ms
