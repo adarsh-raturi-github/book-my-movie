@@ -34,7 +34,7 @@ import { getKafkaConfig } from "../config";
  * which is more performant and production-ready.
  * It supports async/await patterns for all producer operations.
  */
-class ProducerManager {
+export class ProducerManager {
   producer!: Producer;
   /**
    * Connect to Kafka
