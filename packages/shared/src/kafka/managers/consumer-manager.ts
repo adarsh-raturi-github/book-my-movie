@@ -173,14 +173,14 @@ export class ConsumerManager {
               return;
             }
           } catch (err) {
-            await deadLetterPublisher.publish(
-              topic as KafkaTopic,
-              {
-                key: message.key,
-                value: message.value,
-              },
-              err as Error,
-            );
+            // await deadLetterPublisher.publish(
+            //   topic as KafkaTopic,
+            //   {
+            //     key: message.key,
+            //     value: message.value,
+            //   },
+            //   err as Error,
+            // );
             await this.commit(
               topic as KafkaTopic,
               partition,
