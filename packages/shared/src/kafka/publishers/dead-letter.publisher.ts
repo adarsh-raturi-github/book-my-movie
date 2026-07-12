@@ -1,6 +1,7 @@
 import { KafkaTopic } from "../enums";
 import { DeadLetterMessage, DeadLetterPayload } from "../interfaces";
-import { producerManager, ProducerManager } from "../managers";
+import { ProducerManager } from "../managers";
+import { producerManager } from "../managers/producer-manager";
 
 export class DeadLetterPublisher {
   constructor(private readonly producerManager: ProducerManager) {}
