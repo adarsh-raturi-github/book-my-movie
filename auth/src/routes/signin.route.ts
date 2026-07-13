@@ -25,8 +25,13 @@ router.post(
     const existingUser = await prisma.user.findUnique({
       where: {
         email,
+        deleted: false,
+      },
+      include: {
+        userRoles: true,
       },
     });
+
     if (!existingUser) {
       throw new BadRequestError("Invalid Credentials");
     }
@@ -41,12 +46,21 @@ router.post(
       throw new BadRequestError("Invalid Credentials");
     }
 
+    console.log("****", existingUser);
+    const role = await prisma.role.findFirst({
+      where: {
+        id: existingUser.userRoles?.[0].roleId,
+        deleted: false,
+      },
+    });
     // otherwise return jwt
     //Generate JWT
     const userJWT = jwt.sign(
       {
         id: existingUser.id,
         email: existingUser.email,
+        permissions: role?.permissions,
+        role: role?.name,
       },
       process.env.JWT_KEY!,
     );
@@ -59,3 +73,4 @@ router.post(
     });
   },
 );
+export { router as signInRouter };

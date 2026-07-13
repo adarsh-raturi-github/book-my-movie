@@ -12,19 +12,6 @@ export enum ShowSeatStatusEnum {
   BLOCKED = "BLOCKED",
 }
 
-export enum ScreenStatusEnum {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  UNDER_MAINTENANCE = "UNDER_MAINTENANCE",
-}
-
-export enum ScreenTypeEnum {
-  REGULAR = "REGULAR",
-  IMAX = "IMAX",
-  DOLBY = "DOLBY",
-  FOUR_DX = "FOUR_DX",
-}
-
 export enum MovieCertificateEnum {
   U = "U",
   UA = "UA",
@@ -36,14 +23,3 @@ export enum MovieStatusEnum {
   INACTIVE = "INACTIVE",
 }
 
-export enum SeatTypeEnum {
-  REGULAR = "REGULAR",
-  PREMIUM = "PREMIUM",
-  RECLINER = "RECLINER",
-  WHEELCHAIR = "WHEELCHAIR",
-}
-
-export enum SeatStatusEnum {
-  ACTIVE = "ACTIVE",
-  BLOCKED = "BLOCKED",
-}

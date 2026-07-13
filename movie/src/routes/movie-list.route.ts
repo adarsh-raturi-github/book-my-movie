@@ -51,3 +51,5 @@ router.get(
     });
   },
 );
+
+export { router as movieListRoute };

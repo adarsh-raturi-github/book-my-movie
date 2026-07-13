@@ -9,7 +9,6 @@ import { prisma } from "../../prisma.client";
 import { query } from "express-validator";
 
 const router = express.Router();
-
 router.get(
   "/api/theaters",
   nonAuthorizeMiddleware,
@@ -51,3 +50,5 @@ router.get(
     });
   },
 );
+
+export { router as getTheaterListRouter };

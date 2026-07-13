@@ -2,7 +2,7 @@ apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnector
 
 metadata:
-  name: theater-outbox
+  name: movie-outbox
   namespace: kafka
   labels:
     strimzi.io/cluster: bookmymovie-connect
@@ -13,22 +13,22 @@ spec:
   tasksMax: 1
 
   config:
-    database.hostname: theater-postgres-cluster-ip-srv.default.svc.cluster.local
+    database.hostname: movie-postgres-cluster-ip-srv.default.svc.cluster.local
     database.port: "5432"
     database.user: postgres
     database.password: postgres
-    database.dbname: theater
+    database.dbname: movie
 
-    topic.prefix: theater
+    topic.prefix: movie
 
-    publication.name: theater_publication
-    slot.name: theater_slot
+    publication.name: movie_publication
+    slot.name: movie_slot
 
     plugin.name: pgoutput
 
     table.include.list: public.outbox
 
-    snapshot.mode: never
+    snapshot.mode: when_needed
 
     transforms: outbox
     transforms.outbox.type: io.debezium.transforms.outbox.EventRouter

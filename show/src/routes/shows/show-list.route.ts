@@ -51,3 +51,4 @@ router.get(
     });
   },
 );
+export { router as showListRouter };

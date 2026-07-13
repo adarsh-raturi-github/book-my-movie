@@ -5,6 +5,8 @@ import {
   NotFoundError,
   Permission,
   requestValidatorMiddleware,
+  ScreenTypeEnum,
+  SeatTypeEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
@@ -18,7 +20,6 @@ import {
   ShowStatus,
 } from "@prisma/client";
 import { pricingService } from "../../services/pricing.service";
-import { ScreenTypeEnum, SeatTypeEnum } from "../../enums";
 const router = express.Router();
 
 router.post(
@@ -161,3 +162,5 @@ router.post(
     res.status(201).send(show);
   },
 );
+
+export { router as showCreateRouter };

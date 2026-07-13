@@ -1,4 +1,8 @@
-import { ScreenStatusEnum, ScreenTypeEnum, TheaterStatusEnum } from "../enums";
+import {
+  ScreenStatusEnum,
+  ScreenTypeEnum,
+  TheaterStatusEnum,
+} from "@adarsh-tickets/shared";
 
 export const THEATER_STATUS = Object.values(TheaterStatusEnum);
 

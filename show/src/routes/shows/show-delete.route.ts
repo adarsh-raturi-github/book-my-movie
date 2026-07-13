@@ -97,4 +97,4 @@ router.delete(
   },
 );
 
-export { router as deleteShowRouter };
+export { router as showDeleteRouter };

@@ -23,4 +23,18 @@ spec:
               service:
                 name: movie-cluster-ip-srv
                 port:
-                  number: 3000
+                  number: 3001
+          - path: /api/theaters/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: theater-cluster-ip-srv
+                port:
+                  number: 3002
+          - path: /api/shows/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: show-cluster-ip-srv
+                port:
+                  number: 3003

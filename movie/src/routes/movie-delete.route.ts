@@ -1,5 +1,10 @@
 import {
   checkPermission,
+  createEnvelope,
+  IMovieDeleteEventData,
+  KafkaAggregateType,
+  KafkaEventTypes,
+  KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
   NotFoundError,
@@ -8,6 +13,7 @@ import {
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { prisma } from "../prisma.client";
+import { Prisma } from "@prisma/client";
 
 const router = express.Router();
 
@@ -31,19 +37,51 @@ router.delete(
       existingMovie.createdBy !== req.currentUser?.id &&
       req.currentUser?.role !== Role.ADMIN
     ) {
-      throw new NotAuthorizeError("Cant delete a show");
+      throw new NotAuthorizeError(
+        "You are not authorized to delete this movie.",
+      );
     }
 
-    const updatedMovie = await prisma.movie.update({
-      where: {
-        id: id,
-      },
-      data: {
-        deleted: true,
-        deletedBy: req.currentUser!.id,
-      },
+    const updatedMovie = await prisma.$transaction(async (tx) => {
+      const updatedMovie = await tx.movie.update({
+        where: {
+          id: id,
+        },
+        data: {
+          deleted: true,
+          deletedBy: req.currentUser!.id,
+          entityVersion: {
+            increment: 1,
+          },
+        },
+      });
+
+      const event = createEnvelope<IMovieDeleteEventData>(
+        {
+          topic: KafkaTopic.MOVIE_TOPIC,
+          eventType: KafkaEventTypes.MOVIE_DELETED,
+          serviceName: process.env.SERVICE_NAME!,
+        },
+        {
+          entityVersion: updatedMovie.entityVersion,
+          id: updatedMovie.id,
+        },
+      );
+
+      await tx.outbox.create({
+        data: {
+          aggregateType: KafkaAggregateType.MOVIE,
+          aggregateId: updatedMovie.id,
+          topic: KafkaTopic.MOVIE_TOPIC,
+          eventType: KafkaEventTypes.MOVIE_DELETED,
+          eventVersion: updatedMovie.entityVersion,
+          payload: event as unknown as Prisma.InputJsonValue,
+        },
+      });
+      return updatedMovie;
     });
 
     res.send(updatedMovie);
   },
 );
+export { router as movieDeleteRoute };

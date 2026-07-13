@@ -23,6 +23,16 @@ spec:
                   key: JWT_KEY
             - name: DATABASE_URL
               value: postgresql://postgres:postgres@auth-postgres-cluster-ip-srv:5432/auth
+            - name: CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: KAFKA_BROKERS
+              value: bookmymovie-kafka-bootstrap.kafka.svc.cluster.local:9092
+            - name: KAFKA_GROUP_ID
+              value: auth-group
+            - name: SERVICE_NAME
+              value: auth-service
 
 
 ## cluster ip service

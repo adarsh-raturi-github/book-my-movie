@@ -1,23 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: theater-postgres-depl
+  name: movie-postgres-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: theater-postgres
+      app: movie-postgres
   template:
     metadata:
       labels:
-        app: theater-postgres
+        app: movie-postgres
     spec:
       containers:
-        - name: theater-postgres-container
+        - name: movie-postgres-container
           image: postgres:16
           args:
             - "-c"
             - "wal_level=logical"
+            - "-c"
+            - "max_replication_slots=10"
+            - "-c"
+            - "max_wal_senders=10"
 
           resources:
             requests:
@@ -28,7 +32,7 @@ spec:
               memory: "256Mi"
           env:
             - name: POSTGRES_DB
-              value: theater
+              value: movie
             - name: POSTGRES_USER
               value: postgres
             - name: POSTGRES_PASSWORD
@@ -40,12 +44,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: theater-postgres-cluster-ip-srv
+  name: movie-postgres-cluster-ip-srv
 spec:
   selector:
-    app: theater-postgres
+    app: movie-postgres
   ports:
-    - name: theater-postgres-port
+    - name: movie-postgres-port
       protocol: TCP
       port: 5432
       targetPort: 5432

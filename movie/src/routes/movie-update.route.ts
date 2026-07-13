@@ -2,6 +2,13 @@ import express, { Request, Response } from "express";
 import {
   BadRequestError,
   checkPermission,
+  createEnvelope,
+  IMovieUpdateEventData,
+  KafkaAggregateType,
+  KafkaEventTypes,
+  KafkaTopic,
+  MovieCertificateEnum,
+  MovieStatusEnum,
   nonAuthorizeMiddleware,
   NotFoundError,
   Permission,
@@ -10,6 +17,7 @@ import {
 import { body } from "express-validator";
 import { prisma } from "../prisma.client";
 import { MOVIE_CERTIFICATES } from "../constants";
+import { Prisma } from "@prisma/client";
 const router = express.Router();
 
 router.patch(
@@ -132,21 +140,61 @@ router.patch(
         );
       }
     }
-    const movie = await prisma.movie.update({
-      where: { id },
-      data: {
-        title: finalTitle,
-        description,
-        durationMinutes,
-        languages,
-        genres,
-        certificate,
-        releaseDate: finalReleaseDate,
-        posterKey,
-        updatedBy: req.currentUser!.id,
-      },
-    });
+    try {
+      const movie = await prisma.$transaction(async (tx) => {
+        const movie = await tx.movie.update({
+          where: { id },
+          data: {
+            title: finalTitle,
+            description,
+            durationMinutes,
+            languages,
+            genres,
+            certificate,
+            releaseDate: finalReleaseDate,
+            posterKey,
+            updatedBy: req.currentUser!.id,
+            entityVersion: {
+              increment: 1,
+            },
+          },
+        });
+        const event = createEnvelope<IMovieUpdateEventData>(
+          {
+            topic: KafkaTopic.MOVIE_TOPIC,
+            eventType: KafkaEventTypes.MOVIE_UPDATED,
+            serviceName: process.env.SERVICE_NAME!,
+          },
+          {
+            id: movie.id,
+            title: finalTitle,
+            durationMinutes: movie.durationMinutes,
+            language: movie.languages,
+            certificate: movie.certificate as MovieCertificateEnum,
+            genres: movie.genres,
+            posterUrl: movie.posterKey,
+            status: movie.status as MovieStatusEnum,
+            entityVersion: movie.entityVersion,
+          },
+        );
 
-    res.status(200).send(movie);
+        await tx.outbox.create({
+          data: {
+            aggregateType: KafkaAggregateType.MOVIE,
+            aggregateId: movie.id,
+            topic: KafkaTopic.MOVIE_TOPIC,
+            eventType: KafkaEventTypes.MOVIE_UPDATED,
+            eventVersion: movie.entityVersion,
+            payload: event as unknown as Prisma.InputJsonValue,
+          },
+        });
+        return movie;
+      });
+      res.status(200).send(movie);
+    } catch (e) {
+      throw e;
+    }
   },
 );
+
+export { router as movieUpdateRoute };

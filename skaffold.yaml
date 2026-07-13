@@ -3,7 +3,7 @@ kind: Config
 manifests:
   kustomize:
     paths:
-      - infra/k8s
+      - infra/app
 build:
   local:
     push: false
@@ -26,6 +26,14 @@ build:
             dest: .
     - image: adarsh893/book-my-movie-theater
       context: theater
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
+    - image: adarsh893/book-my-movie-show
+      context: show
       docker:
         dockerfile: Dockerfile
       sync:
