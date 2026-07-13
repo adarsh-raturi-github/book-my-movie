@@ -62,7 +62,7 @@ export interface IMovieCreatedEventData {
   title: string;
   durationMinutes: number;
   language: string[];
-  certificate: MovieCertificateEnum[];
+  certificate: MovieCertificateEnum;
   genres: string[];
   posterUrl: string;
   status: MovieStatusEnum;
@@ -74,14 +74,14 @@ export interface IMovieUpdateEventData {
   title: string;
   durationMinutes: number;
   language: string[];
-  certificate: MovieCertificateEnum[];
+  certificate: MovieCertificateEnum;
   genres: string[];
   posterUrl: string;
   status: MovieStatusEnum;
   entityVersion: number;
 }
 
-export interface IMovieDeleteEventDate {
+export interface IMovieDeleteEventData {
   id: string;
   entityVersion: number;
 }
