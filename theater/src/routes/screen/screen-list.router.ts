@@ -46,3 +46,5 @@ router.get(
     return res.send(screens);
   },
 );
+
+export { router as screenListRouter };

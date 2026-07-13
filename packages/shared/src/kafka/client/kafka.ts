@@ -93,10 +93,17 @@ import { getKafkaConfig } from "../config";
  * 2. Defer actual connection until needed
  * 3. Handle connection failures gracefully
  */
-const config = getKafkaConfig();
-export const kafka = new KafkaJS.Kafka({
-  "bootstrap.servers": config.brokers.join(","),
-  "client.id": config.clientId,
-  // Refresh metadata every 5 minutes
-  "metadata.max.age.ms": 300000,
-});
+let kafka: KafkaJS.Kafka;
+export function getKafkaClient() {
+  const config = getKafkaConfig();
+  if (kafka) {
+    return kafka;
+  }
+  kafka = new KafkaJS.Kafka({
+    "bootstrap.servers": config.brokers.join(","),
+    "client.id": config.clientId,
+    // Refresh metadata every 5 minutes
+    "metadata.max.age.ms": 300000,
+  });
+  return kafka;
+}

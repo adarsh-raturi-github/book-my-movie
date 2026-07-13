@@ -6,10 +6,18 @@ export enum KafkaTopic {
   BOOKING_TOPIC = "booking-topic",
 }
 
+export enum KafkaAggregateType {
+  MOVIE = "MOVIE",
+  SCREEN = "SCREEN",
+  THEATER = "THEATER",
+  SHOW = "SHOW",
+  SEAT = "SEAT",
+}
+
 export enum KafkaEventTypes {
-  // MOVIE_CREATED = "movie-created",
-  // MOVIE_UPDATED = "movie-updated",
-  // MOVIE_DELETED = "movie-deleted",
+  MOVIE_CREATED = "movie-created",
+  MOVIE_UPDATED = "movie-updated",
+  MOVIE_DELETED = "movie-deleted",
 
   THEATER_CREATED = "theater-created",
   THEATER_UPDATED = "theater-updated",
@@ -23,9 +31,9 @@ export enum KafkaEventTypes {
   // SHOW_UPDATED = "show-updated",
   // SHOW_DELETED = "show-deleted",
 
-  // SEAT_CREATED = "seat-created",
-  // SEAT_UPDATED = "seat-updated",
-  // SEAT_DELETED = "seat-deleted",
+  SEAT_CREATED = "seat-created",
+  SEAT_UPDATED = "seat-updated",
+  SEAT_DELETED = "seat-deleted",
 
   /**
    * PAYMENT_INITIATED

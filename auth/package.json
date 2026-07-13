@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@adarsh-tickets/shared": "^1.0.2",
+    "@adarsh-tickets/shared": "^1.0.32",
     "@prisma/client": "^6.10.1",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",

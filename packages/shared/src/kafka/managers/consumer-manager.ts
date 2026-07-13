@@ -1,9 +1,12 @@
-import { consumer } from "../client";
-import { KafkaTopic } from "../enums";
+import { Consumer } from "@confluentinc/kafka-javascript/types/kafkajs";
+import { getKafkaClient } from "../client";
+import { getKafkaConfig } from "../config";
+import { KafkaEventTypes, KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
-import { deadLetterPublisher } from "../publishers";
-import { avroDeserializer } from "../registry/avro-deserailizer";
+import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
 import { MessageHandler } from "../types";
+import { EventEnvelope } from "../interfaces";
+import { DeadLetterPublisher } from "../publishers";
 
 /**
  * ConsumerManager
@@ -18,7 +21,18 @@ import { MessageHandler } from "../types";
  * - Documentation for common Kafka consumer patterns
  */
 export class ConsumerManager {
-  private readonly handlers = new Map<KafkaTopic, MessageHandler<any>>();
+  private consumer!: Consumer;
+  constructor(
+    private readonly deserializer: IMessageDeserializationStrategy,
+    private readonly deadLetterPublisher: DeadLetterPublisher,
+  ) {}
+  private readonly handlers = new Map<
+    KafkaEventTypes,
+    {
+      topic: KafkaTopic;
+      handler: MessageHandler<any>;
+    }
+  >();
   /**
    * Connect to Kafka
    *
@@ -26,7 +40,17 @@ export class ConsumerManager {
    * Must be called before subscribing or consuming messages.
    */
   async initialize() {
-    await consumer.connect();
+    this.consumer = getKafkaClient().consumer({
+      // by default auto commit
+      kafkaJS: {
+        groupId: getKafkaConfig().groupId, // Which group consumer needs to join
+      },
+      "bootstrap.servers": getKafkaConfig().brokers.join(","),
+      "auto.offset.reset": "latest",
+      "isolation.level": "read_committed",
+      "auto.commit.enable": false,
+    });
+    await this.consumer.connect();
   }
 
   /**
@@ -36,7 +60,7 @@ export class ConsumerManager {
    * Ensures any outstanding work is completed before shutdown.
    */
   async shutdown() {
-    await consumer.disconnect();
+    await this.consumer.disconnect();
   }
 
   /**
@@ -46,8 +70,15 @@ export class ConsumerManager {
    * Topics must be subscribed before calling `consume()`.
    */
 
-  async register<T>(topic: KafkaTopic, handler: MessageHandler<T>) {
-    this.handlers.set(topic, handler);
+  async register<T>(
+    topic: KafkaTopic,
+    eventType: KafkaEventTypes,
+    handler: MessageHandler<T>,
+  ) {
+    this.handlers.set(eventType, {
+      topic,
+      handler,
+    });
   }
 
   /**
@@ -57,7 +88,7 @@ export class ConsumerManager {
    * after a restart or rebalance.
    */
   async commit(topic: KafkaTopic, partition: number, offset: string) {
-    return consumer.commitOffsets([
+    return this.consumer.commitOffsets([
       {
         topic,
         partition,
@@ -72,17 +103,23 @@ export class ConsumerManager {
    * The handler is invoked for every message received from Kafka.
    */
   async start<T>() {
-    await consumer.subscribe({
-      topics: [...this.handlers.keys()],
+    const topics = [
+      ...new Set([...this.handlers.values()].map((l) => l.topic)),
+    ];
+    await this.consumer.subscribe({
+      topics,
     });
-    await consumer.run({
+    await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        let event: T;
+        let event: EventEnvelope<T>;
 
         try {
-          event = await avroDeserializer.deserialize(topic, message.value!);
+          event = await this.deserializer.deserialize(
+            topic as KafkaTopic,
+            message.value!,
+          );
         } catch (err) {
-          await deadLetterPublisher.publish(
+          await this.deadLetterPublisher.publish(
             topic as KafkaTopic,
             {
               key: message.key,
@@ -97,10 +134,26 @@ export class ConsumerManager {
           );
           return;
         }
-
-        const handler = this.handlers.get(topic as KafkaTopic);
+        const handler = this.handlers.get(
+          event.eventType as KafkaEventTypes,
+        )?.handler;
         if (!handler) {
-          throw new Error(`No handler registered for topic ${topic}`);
+          await this.deadLetterPublisher.publish(
+            topic as KafkaTopic,
+            {
+              key: message.key,
+              value: message.value,
+            },
+            new NonRetryableError(
+              `No handler registered for event type ${event.eventType}`,
+            ),
+          );
+          await this.commit(
+            topic as KafkaTopic,
+            partition,
+            (Number(message.offset) + 1).toString(),
+          );
+          return;
         }
         try {
           await handler(event, {
@@ -115,12 +168,42 @@ export class ConsumerManager {
             (Number(message.offset) + 1).toString(),
           );
         } catch (err) {
-          if (err instanceof RetryableError) {
-            throw err; // Let Kafka retry
+          try {
+            if (err instanceof RetryableError) {
+              await this.executeWithRety(() =>
+                handler(event, {
+                  topic,
+                  partition,
+                  offset: message.offset,
+                  key: message.key?.toString(),
+                }),
+              );
+              await this.commit(
+                topic as KafkaTopic,
+                partition,
+                (Number(message.offset) + 1).toString(),
+              );
+              return;
+            }
+          } catch (err) {
+            await this.deadLetterPublisher.publish(
+              topic as KafkaTopic,
+              {
+                key: message.key,
+                value: message.value,
+              },
+              err as Error,
+            );
+            await this.commit(
+              topic as KafkaTopic,
+              partition,
+              (Number(message.offset) + 1).toString(),
+            );
+            return;
           }
 
           if (err instanceof NonRetryableError) {
-            await deadLetterPublisher.publish(
+            await this.deadLetterPublisher.publish(
               topic as KafkaTopic,
               {
                 key: message.key,
@@ -139,5 +222,22 @@ export class ConsumerManager {
         }
       },
     });
+  }
+  private async executeWithRety(fn: () => Promise<void>, retries = 3) {
+    let delay = 1000;
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (!(err instanceof RetryableError)) {
+          throw err;
+        }
+        if (i === retries - 1) {
+          throw err;
+        }
+        await new Promise((r) => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
   }
 }

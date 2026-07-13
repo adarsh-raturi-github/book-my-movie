@@ -1,6 +1,10 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { requestValidatorMiddleware } from "@adarsh-tickets/shared";
+import {
+  Permission,
+  requestValidatorMiddleware,
+  Role,
+} from "@adarsh-tickets/shared";
 import { prisma } from "../prisma.client";
 import { PasswordManagementHelperService } from "../services";
 import jwt from "jsonwebtoken";
@@ -38,12 +42,27 @@ router.post(
     const hashedPassword =
       await PasswordManagementHelperService.toHash(password);
     // if not than create user
-    const createdUser = await prisma.user.create({
+    const [createdUser, userRole] = await Promise.all([
+      prisma.user.create({
+        data: {
+          email,
+          phone,
+          passwordHash: hashedPassword,
+          status: "ACTIVE",
+        },
+      }),
+      prisma.role.findFirst({
+        where: {
+          name: Role.USER,
+          deleted: false,
+        },
+      }),
+    ]);
+
+    await prisma.userRole.create({
       data: {
-        email,
-        phone,
-        passwordHash: hashedPassword,
-        status: "ACTIVE",
+        userId: createdUser.id,
+        roleId: userRole!.id,
       },
     });
     //Generate JWT
@@ -51,6 +70,8 @@ router.post(
       {
         id: createdUser.id,
         email: createdUser.email,
+        permissions: userRole?.permissions,
+        role: Role.USER,
       },
       process.env.JWT_KEY!,
     );

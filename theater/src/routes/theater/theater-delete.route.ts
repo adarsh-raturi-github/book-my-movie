@@ -47,3 +47,5 @@ router.delete(
     return res.send();
   },
 );
+
+export { router as deleteTheaterRouter };

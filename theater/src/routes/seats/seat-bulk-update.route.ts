@@ -15,11 +15,11 @@ import { SCREEN_STATUS, SCREEN_TYPES } from "../../constants";
 const router = express.Router();
 
 router.patch(
-  "/api/theaters/:theaterId/screens/:id",
+  "/api/screens/:screenId/seats/bulk",
   nonAuthorizeMiddleware,
   checkPermission(Permission.THEATER_UPDATE),
   [
-    param("theaterId").isUUID().withMessage("Invalid theater id"),
+    param("screenId").isUUID().withMessage("Invalid screen id"),
     body("name")
       .optional()
       .trim()
@@ -49,30 +49,13 @@ router.patch(
     if (!Object.keys(req.body).length) {
       throw new BadRequestError("At least one field must be provided.");
     }
-    let { name, description, type, status } = req.body;
 
-    const { id, theaterId } = req.params as { id: string; theaterId: string };
-    const currentUser = req.currentUser!;
-
-    const existingTheater = await prisma.theater.findFirst({
-      where: {
-        id: theaterId,
-        deleted: false,
-      },
-    });
-
-    if (!existingTheater) {
-      throw new NotFoundError();
-    }
-
+    const { screenId } = req.params as { screenId: string };
+    const { seats } = req.body as { seats: any[] };
     const existingScreen = await prisma.screen.findFirst({
       where: {
-        id,
+        id: screenId,
         deleted: false,
-        theaterId,
-        theater: {
-          deleted: false,
-        },
       },
     });
 
@@ -80,53 +63,32 @@ router.patch(
       throw new NotFoundError();
     }
 
-    if (
-      existingTheater.ownerId !== currentUser.id &&
-      currentUser.role !== Role.ADMIN
-    ) {
-      throw new NotAuthorizeError(
-        "You are not authorized to update this theater.",
-      );
-    }
-
-    const finalName = (name || existingScreen.name)?.trim();
-    const isNameChange =
-      finalName?.toLowerCase() !== existingScreen?.name?.toLowerCase();
-
-    if (isNameChange) {
-      const theater = await prisma.screen.findFirst({
-        where: {
-          id: { not: id },
-          name: {
-            equals: finalName,
-            mode: "insensitive",
-          },
-          theaterId,
-          theater: {
-            deleted: false,
-          },
-          deleted: false,
-        },
-      });
-
-      if (theater) {
-        throw new BadRequestError(
-          "A screen with the same name already exists for this theater.",
-        );
-      }
-    }
-
-    const updatedScreen = await prisma.screen.update({
-      where: { id, deleted: false },
-      data: {
-        name: finalName.trim(),
-        description: description?.trim(),
-        type,
-        status,
-        updatedBy: currentUser.id,
+    const existingSeats = await prisma.seat.findMany({
+      where: {
+        OR:[
+     {id: { in: seats.map((s) => s.id) }}
+     
+        ]
+   
+        
+        rowLabel: { in: seats.map((s) => s.rowLabel) },
+        seatNumber: { in: seats.map((s) => s.seatNumber) },
+        deleted: false,
       },
     });
 
-    return res.send(updatedScreen);
+    const seatAllotment = new Map<
+      string,
+      { rowLabel: string; seatNumber: number }
+    >();
+    for (const seat of existingSeats) {
+      seatAllotment.set(seat.id, {
+        rowLabel: seat.rowLabel,
+        seatNumber: seat.seatNumber,
+      });
+    }
+
+    for (const seat of seats) {
+    }
   },
 );

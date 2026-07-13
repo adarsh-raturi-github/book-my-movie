@@ -36,7 +36,7 @@ import {
   ShowStatus,
 } from "@prisma/client";
 import { pricingService } from "../../services/pricing.service";
-import { ScreenTypeEnum, SeatTypeEnum, ShowStatusEnum } from "../../enums";
+import { ShowStatusEnum } from "../../enums";
 const router = express.Router();
 
 router.patch(
@@ -153,3 +153,5 @@ router.patch(
     res.status(201).send(updatedShow);
   },
 );
+
+export { router as showUpdateRouter };

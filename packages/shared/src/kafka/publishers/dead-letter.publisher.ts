@@ -1,16 +1,14 @@
-import { producer } from "../client";
 import { KafkaTopic } from "../enums";
 import { DeadLetterMessage, DeadLetterPayload } from "../interfaces";
-import { producerManager } from "../managers";
+import { ProducerManager } from "../managers";
 
 export class DeadLetterPublisher {
-  private producerManager = producerManager;
-
+  constructor(private readonly producerManager: ProducerManager) {}
   private getTopic(topic: KafkaTopic) {
     return `${topic}-dlt`;
   }
 
-  publish(topic: KafkaTopic, message: DeadLetterMessage, error: Error) {
+  async publish(topic: KafkaTopic, message: DeadLetterMessage, error: Error) {
     const dltTopic = this.getTopic(topic);
 
     const payload: DeadLetterPayload = {
@@ -20,12 +18,10 @@ export class DeadLetterPublisher {
       error: error.message,
       occurredAt: new Date().toISOString(),
     };
-    this.producerManager.publishRaw({
+    await this.producerManager.publishRaw({
       topic: dltTopic,
       key: message.key,
       value: JSON.stringify(payload),
     });
   }
 }
-
-export const deadLetterPublisher = new DeadLetterPublisher();

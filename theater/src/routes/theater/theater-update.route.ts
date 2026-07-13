@@ -188,3 +188,5 @@ router.patch(
     return res.send(updatedTheater);
   },
 );
+
+export { router as theaterUpdateRouter };

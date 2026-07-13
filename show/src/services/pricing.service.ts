@@ -1,4 +1,4 @@
-import { ScreenTypeEnum, SeatTypeEnum } from "../enums";
+import { ScreenTypeEnum, SeatTypeEnum } from "@adarsh-tickets/shared";
 
 export class PricingService {
   /**

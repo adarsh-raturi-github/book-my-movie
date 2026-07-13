@@ -1,5 +1,10 @@
 import {
   checkPermission,
+  createEnvelope,
+  IScreenDeleteEventData,
+  KafkaAggregateType,
+  KafkaEventTypes,
+  KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
   NotFoundError,
@@ -10,7 +15,7 @@ import {
 import express, { Request, Response } from "express";
 import { prisma } from "../../prisma.client";
 import { param } from "express-validator";
-import { screenPublisher } from "../../events/screen/publisher";
+import { Prisma } from "@prisma/client";
 
 const router = express.Router();
 
@@ -59,21 +64,47 @@ router.delete(
     ) {
       throw new NotAuthorizeError("You are not the owner of this theater.");
     }
-    await prisma.screen.update({
-      where: {
-        id: id,
-      },
-      data: {
-        deleted: true,
-        deletedBy: req.currentUser!.id,
-      },
+
+    await prisma.$transaction(async (tx) => {
+      const updatedScreen = await tx.screen.update({
+        where: {
+          id: id,
+          deleted: false,
+        },
+        data: {
+          deleted: true,
+          deletedBy: req.currentUser!.id,
+          entityVersion: {
+            increment: 1,
+          },
+        },
+      });
+
+      const event = createEnvelope<IScreenDeleteEventData>(
+        {
+          topic: KafkaTopic.THEATER_TOPIC,
+          eventType: KafkaEventTypes.SCREEN_DELETED,
+          serviceName: process.env.SERVICE_NAME!,
+        },
+        {
+          id,
+          entityVersion: updatedScreen.entityVersion,
+        },
+      );
+      await tx.outbox.create({
+        data: {
+          aggregateType: KafkaAggregateType.SCREEN,
+          aggregateId: id,
+          topic: KafkaTopic.THEATER_TOPIC,
+          eventType: KafkaEventTypes.SCREEN_DELETED,
+          eventVersion: updatedScreen.entityVersion,
+          payload: event as unknown as Prisma.InputJsonValue,
+        },
+      });
     });
 
-    await screenPublisher.deleted({
-      id,
-      entityVersion: screen.entityVersion,
-    });
-
-    return res.send();
+    return res.send({});
   },
 );
+
+export { router as screenDeleteRouter };

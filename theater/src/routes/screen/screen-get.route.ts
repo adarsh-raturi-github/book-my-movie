@@ -64,3 +64,5 @@ router.get(
     return res.send(screen);
   },
 );
+
+export { router as screengetRouter };

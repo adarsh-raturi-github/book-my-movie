@@ -28,3 +28,5 @@ router.get(
     return res.send(existingMovie);
   },
 );
+
+export { router as movieGetRoute };

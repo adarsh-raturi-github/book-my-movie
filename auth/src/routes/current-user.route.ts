@@ -13,3 +13,5 @@ router.get(
     return res.send({ currentUser: req.currentUser || null });
   },
 );
+
+export { router as currentUserRouter };

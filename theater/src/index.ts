@@ -1,4 +1,8 @@
-import { initializeKafka, producerManager } from "@adarsh-tickets/shared";
+import {
+  createKafka,
+  initializeKafka,
+  JsonDeserialization,
+} from "@adarsh-tickets/shared";
 import { app } from "./app";
 const start = async () => {
   try {
@@ -28,13 +32,17 @@ const start = async () => {
     initializeKafka({
       clientId: process.env.CLIENT_ID,
       brokers: process.env.KAFKA_BROKERS.split(","),
-      groupId: process.env.KAFTKA_GROUP_ID!,
+      groupId: process.env.KAFKA_GROUP_ID!,
       serviceName: process.env.SERVICE_NAME,
     });
 
-    await producerManager.initialize();
+    const kafka = await createKafka({
+      deserializer: new JsonDeserialization(),
+    });
+    const producer = kafka.producer;
+    await producer.initialize();
     app.listen(3002, () => {
-      console.log("Theater Service started on 3002!!");
+      console.log("Theater Service started on 3002xxx!!");
     });
   } catch (e) {
     throw new Error();

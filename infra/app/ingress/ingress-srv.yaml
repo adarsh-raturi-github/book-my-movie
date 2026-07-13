@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: book-my-movie.dev
+      http:
+        paths:
+          - path: /api/auth/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth-cluster-ip-srv
+                port:
+                  number: 3000
+          - path: /api/movies/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: movie-cluster-ip-srv
+                port:
+                  number: 3001
+          - path: /api/theaters/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: theater-cluster-ip-srv
+                port:
+                  number: 3002
+          - path: /api/shows/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: show-cluster-ip-srv
+                port:
+                  number: 3003

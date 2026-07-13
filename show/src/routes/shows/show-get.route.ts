@@ -28,3 +28,5 @@ router.get(
     return res.send(existingShow);
   },
 );
+
+export { router as showGetRouter };

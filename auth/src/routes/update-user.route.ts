@@ -92,3 +92,5 @@ router.patch(
     });
   },
 );
+
+export { router as updateUserRouter };

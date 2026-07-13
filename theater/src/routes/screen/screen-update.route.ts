@@ -2,6 +2,11 @@ import express, { Request, Response } from "express";
 import {
   BadRequestError,
   checkPermission,
+  createEnvelope,
+  IScreenUpdateEventData,
+  KafkaAggregateType,
+  KafkaEventTypes,
+  KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
   NotFoundError,
@@ -14,7 +19,7 @@ import {
 import { body, param } from "express-validator";
 import { prisma } from "../../prisma.client";
 import { SCREEN_STATUS, SCREEN_TYPES, THEATER_STATUS } from "../../constants";
-import { screenPublisher } from "../../events/screen/publisher";
+import { Prisma } from "@prisma/client";
 const router = express.Router();
 
 router.patch(
@@ -92,7 +97,7 @@ router.patch(
       );
     }
 
-    const finalName = (name || existingScreen.name)?.trim();
+    const finalName = (name ?? existingScreen.name)?.trim();
     const isNameChange =
       finalName?.toLowerCase() !== existingScreen?.name?.toLowerCase();
 
@@ -119,25 +124,48 @@ router.patch(
       }
     }
 
-    const updatedScreen = await prisma.screen.update({
-      where: { id, deleted: false },
-      data: {
-        name: finalName.trim(),
-        description: description?.trim(),
-        type,
-        status,
-        updatedBy: currentUser.id,
-      },
-    });
+    const screen = await prisma.$transaction(async (tx) => {
+      const updatedScreen = await tx.screen.update({
+        where: { id, deleted: false },
+        data: {
+          name: finalName.trim(),
+          description: description?.trim(),
+          type,
+          status,
+          updatedBy: currentUser.id,
+          entityVersion: {
+            increment: 1,
+          },
+        },
+      });
+      const event = createEnvelope<IScreenUpdateEventData>(
+        {
+          topic: KafkaTopic.THEATER_TOPIC,
+          eventType: KafkaEventTypes.SCREEN_UPDATED,
+          serviceName: process.env.SERVICE_NAME!,
+        },
+        {
+          id,
+          name: updatedScreen.name,
+          type: updatedScreen.type as ScreenTypeEnum,
+          status: updatedScreen.status as ScreenStatusEnum,
+          entityVersion: updatedScreen.entityVersion,
+        },
+      );
 
-    await screenPublisher.updated({
-      id,
-      name: updatedScreen.name,
-      type: updatedScreen.type as ScreenTypeEnum,
-      status: updatedScreen.type as ScreenStatusEnum,
-      entityVersion: updatedScreen.entityVersion,
+      await tx.outbox.create({
+        data: {
+          aggregateType: KafkaAggregateType.SCREEN,
+          aggregateId: id,
+          topic: KafkaTopic.THEATER_TOPIC,
+          eventType: KafkaEventTypes.SCREEN_UPDATED,
+          eventVersion: updatedScreen.entityVersion,
+          payload: event as unknown as Prisma.InputJsonValue,
+        },
+      });
+      return updatedScreen;
     });
-
-    return res.send(updatedScreen);
+    return res.send(screen);
   },
 );
+export { router as screenUpdateRouter };

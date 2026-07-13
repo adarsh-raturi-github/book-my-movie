@@ -32,3 +32,5 @@ router.get(
     return res.send(existingTheater);
   },
 );
+
+export { router as getTheaterRouter };

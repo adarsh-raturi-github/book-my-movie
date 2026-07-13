@@ -1,6 +1,11 @@
 import {
   BadRequestError,
   checkPermission,
+  createEnvelope,
+  IScreenCreateEventData,
+  KafkaAggregateType,
+  KafkaEventTypes,
+  KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
   NotFoundError,
@@ -13,9 +18,8 @@ import {
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { prisma } from "../../prisma.client";
-import { ScreenStatus, TheaterStatus } from "@prisma/client";
+import { Prisma, ScreenStatus, TheaterStatus } from "@prisma/client";
 import { SCREEN_TYPES } from "../../constants";
-import { screenPublisher } from "../../events/screen/publisher";
 const router = express.Router();
 
 router.post(
@@ -81,27 +85,57 @@ router.post(
         "A screen with the same name already exists in this theater.",
       );
     }
-    const screen = await prisma.screen.create({
-      data: {
-        name: name.trim(),
-        description: description.trim(),
-        theaterId,
-        type,
-        status: ScreenStatus.ACTIVE,
-        createdBy: currentUser.id,
-        capacity: 0,
-      },
-    });
 
-    await screenPublisher.created({
-      id: screen.id,
-      theaterId: screen.theaterId,
-      name: screen.name,
-      type: screen.type as ScreenTypeEnum,
-      status: screen.status as ScreenStatusEnum,
-      entityVersion: 1,
-    });
+    try {
+      const newScreen = await prisma.$transaction(async (tx) => {
+        const screen = await tx.screen.create({
+          data: {
+            name: name.trim(),
+            description: description.trim(),
+            theaterId,
+            type,
+            status: ScreenStatus.ACTIVE,
+            createdBy: currentUser.id,
+            capacity: 0,
+          },
+        });
 
-    return res.status(200).send(screen);
+        const event = createEnvelope<IScreenCreateEventData>(
+          {
+            topic: KafkaTopic.THEATER_TOPIC,
+            eventType: KafkaEventTypes.SCREEN_CREATED,
+            serviceName: process.env.SERVICE_NAME!,
+          },
+          {
+            id: screen.id,
+            theaterId: screen.theaterId,
+            name: screen.name.trim(),
+            type: screen.type as ScreenTypeEnum,
+            status: screen.status as ScreenStatusEnum,
+            entityVersion: screen.entityVersion,
+          },
+        );
+
+        await tx.outbox.create({
+          data: {
+            aggregateType: KafkaAggregateType.SCREEN,
+            aggregateId: screen.id,
+            topic: KafkaTopic.THEATER_TOPIC,
+            eventType: KafkaEventTypes.SCREEN_CREATED,
+            eventVersion: screen.entityVersion,
+            payload: event as unknown as Prisma.InputJsonValue,
+          },
+        });
+        return screen;
+      });
+      console.log("outbox send");
+      return res.status(200).send(newScreen);
+    } catch (err) {
+      console.log("outbox send ERR");
+
+      throw err;
+    }
   },
 );
+
+export { router as screenCreateRouter };

@@ -25,4 +25,4 @@ router.delete(
   },
 );
 
-export { router as signupRouter };
+export { router as deleteUserRouter };

@@ -10,3 +10,5 @@ router.post(
     return res.send({});
   },
 );
+
+export { router as logoutRouter };

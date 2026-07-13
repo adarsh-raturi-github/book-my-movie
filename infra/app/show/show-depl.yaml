@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: show-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: show
+  template:
+    metadata:
+      labels:
+        app: show
+    spec:
+      containers:
+        - name: show-container
+          image: adarsh893/book-my-movie-show
+
+          command:
+            - sh
+            - -c
+          args:
+            - npx prisma migrate deploy && npm run debug
+
+          ports:
+            - containerPort: 3003
+            - containerPort: 9229
+
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@show-postgres-cluster-ip-srv:5432/show
+
+            - name: CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: KAFKA_BROKERS
+              value: bookmymovie-kafka-bootstrap.kafka.svc.cluster.local:9092
+
+            - name: KAFKA_GROUP_ID
+              value: show-group
+
+            - name: SERVICE_NAME
+              value: show-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: show-cluster-ip-srv
+spec:
+  selector:
+    app: show
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3003
+      targetPort: 3003

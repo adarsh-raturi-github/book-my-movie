@@ -34,8 +34,8 @@ model Show {
   endTime        DateTime
   bookingOpenAt  DateTime
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+ createdAt       DateTime     @default(now()) @map("created_at")
+updatedAt       DateTime     @updatedAt @map("updated_at")
 
   createdBy      String      @db.Uuid
   updatedBy      String?     @db.Uuid
@@ -87,8 +87,8 @@ model ShowSeat {
   version         Int              @default(1)
 
   // Audit Fields
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime     @default(now()) @map("created_at")
+updatedAt       DateTime     @updatedAt @map("updated_at")
 
   createdBy       String           @db.Uuid
   updatedBy       String?          @db.Uuid
@@ -138,9 +138,8 @@ model ScreenProjection {
   status         ScreenStatus
 
   entityVersion Int   @default(1)
-  createdAt      DateTime
-
-  updatedAt      DateTime
+  createdAt       DateTime     @default(now()) @map("created_at")
+updatedAt       DateTime     @updatedAt @map("updated_at")
 
   @@unique([theaterId, name])
 
@@ -182,9 +181,8 @@ model MovieProjection {
 
   entityVersion     Int           @default(1)
 
-  createdAt         DateTime
-
-  updatedAt         DateTime
+  createdAt       DateTime     @default(now()) @map("created_at")
+updatedAt       DateTime     @updatedAt @map("updated_at")
 
   @@index([title])
   @@index([status])

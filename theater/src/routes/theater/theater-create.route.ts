@@ -4,11 +4,11 @@ import {
   nonAuthorizeMiddleware,
   Permission,
   requestValidatorMiddleware,
+  TheaterStatusEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { prisma } from "../../prisma.client";
-import { TheaterStatusEnum } from "../../enums";
 const router = express.Router();
 
 router.post(
@@ -136,3 +136,5 @@ router.post(
     return res.status(200).send(theater);
   },
 );
+
+export { router as createTheaterRouter };
