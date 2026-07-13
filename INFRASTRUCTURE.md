@@ -1,113 +1,344 @@
-# Book My Movie - Kubernetes Infrastructure
+# BookMyMovie - Kubernetes Infrastructure
 
-## Pods & Containers Flow Diagram
+Production-oriented Kubernetes deployment for an event-driven movie ticket booking platform.
+
+---
+
+# High-Level Architecture
 
 ```mermaid
-graph TD
-    A["🌐 Ingress Service<br/>book-my-movie.dev<br/>nginx"] -->|/api/auth/*| B["⚙️ Auth Service<br/>auth-cluster-ip-srv<br/>Port 3000"]
+flowchart LR
 
-    B --> C["📦 Auth Pod<br/>auth-depl"]
-    C --> D["🐳 Container<br/>auth-container<br/>adarsh893/book-my-movie-auth"]
+    Client["👤 Client / Web App"]
 
-    D -->|Connect DB<br/>postgresql://...| E["📦 Auth Postgres Pod<br/>auth-postgres-depl"]
-    E --> F["🐳 Container<br/>auth-postgres-container<br/>postgres:16"]
+    Ingress["🌐 NGINX Ingress
+book-my-movie.dev"]
 
-    G["⚙️ Movie Service<br/>movie-cluster-ip-srv<br/>Port 3001"] --> H["📦 Movie Pod<br/>movie-depl"]
-    H --> I["🐳 Container<br/>movie-container<br/>adarsh893/book-my-movie-movie"]
+    Client --> Ingress
 
-    I -->|Connect DB<br/>postgresql://...| J["📦 Movie Postgres Pod<br/>movie-postgres-depl"]
-    J --> K["🐳 Container<br/>movie-postgres-container<br/>postgres:16"]
+    %% ------------------ SERVICES -------------------
 
-    D -.->|JWT_KEY| L["🔐 Secrets<br/>jwt-secret"]
-    I -.->|JWT_KEY| L
+    Ingress --> Auth["🔐 Auth Service"]
+    Ingress --> Movie["🎬 Movie Service"]
+    Ingress --> Theater["🏢 Theater Service"]
+    Ingress --> Show["🎟️ Show Service"]
+    Ingress --> Booking["📝 Booking Service"]
 
-    style A fill:#ff6b6b
-    style B fill:#4ecdc4
-    style G fill:#4ecdc4
-    style L fill:#ffd93d
-    style C fill:#95e1d3
-    style H fill:#95e1d3
-    style E fill:#a8dadc
-    style J fill:#a8dadc
+    %% ---------------- DATABASES --------------------
+
+    Auth --> AuthDB[(Auth DB)]
+    Movie --> MovieDB[(Movie DB)]
+    Theater --> TheaterDB[(Theater DB)]
+    Show --> ShowDB[(Show DB)]
+    Booking --> BookingDB[(Booking DB)]
+
+    %% ---------------- OUTBOX -----------------------
+
+    TheaterDB --> TheaterOutbox[(Outbox)]
+    ShowDB --> ShowOutbox[(Outbox)]
+    BookingDB --> BookingOutbox[(Outbox)]
+
+    %% ---------------- CDC --------------------------
+
+    TheaterOutbox --> Debezium
+    ShowOutbox --> Debezium
+    BookingOutbox --> Debezium
+
+    Debezium["Debezium CDC"]
+
+    %% ---------------- KAFKA ------------------------
+
+    Debezium --> Kafka["Apache Kafka"]
+
+    Kafka --> Theater
+    Kafka --> Show
+    Kafka --> Booking
+
 ```
 
-## Architecture Overview
+---
 
-### Kubernetes Cluster Components
+# Event Flow
 
-| Component          | Pod                   | Container                  | Image                           | Replicas | Port |
-| ------------------ | --------------------- | -------------------------- | ------------------------------- | -------- | ---- |
-| **Auth Service**   | `auth-depl`           | `auth-container`           | `adarsh893/book-my-movie-auth`  | 1        | 3000 |
-| **Auth Database**  | `auth-postgres-depl`  | `auth-postgres-container`  | `postgres:16`                   | 1        | 5432 |
-| **Movie Service**  | `movie-depl`          | `movie-container`          | `adarsh893/book-my-movie-movie` | 1        | 3001 |
-| **Movie Database** | `movie-postgres-depl` | `movie-postgres-container` | `postgres:16`                   | 1        | 5432 |
+```mermaid
+sequenceDiagram
 
-### Services
+participant Client
+participant Booking
+participant Kafka
+participant Show
 
-#### Ingress
+Client->>Booking: POST /bookings
 
-- **Type**: Ingress (nginx)
-- **Host**: `book-my-movie.dev`
-- **Routes**:
-  - `/api/auth/*` → `auth-cluster-ip-srv:3000`
+Booking->>Booking: Create Booking
+Booking->>Booking: Insert Outbox
 
-#### Cluster Services
+Booking-->>Kafka: BookingCreated
 
-- **auth-cluster-ip-srv**: ClusterIP on port 3000 (Auth microservice)
-- **auth-postgres-cluster-ip-srv**: ClusterIP on port 5432 (Auth database)
-- **movie-cluster-ip-srv**: ClusterIP on port 3001 (Movie microservice)
-- **movie-postgres-cluster-ip-srv**: ClusterIP on port 5432 (Movie database)
+Kafka-->>Show: BookingCreated
 
-### Environment Variables & Secrets
+Show->>Show: Lock Seats
 
-**Auth Service (`auth-depl`)**
+alt Success
 
-```yaml
-JWT_KEY: (from secret: jwt-secret)
-DATABASE_URL: postgresql://postgres:postgres@auth-postgres-cluster-ip-srv:5432/auth
+Show-->>Kafka: SeatsLocked
+
+Kafka-->>Booking: SeatsLocked
+
+Booking->>Booking: PAYMENT_PENDING
+
+else Failure
+
+Show-->>Kafka: SeatLockFailed
+
+Kafka-->>Booking: SeatLockFailed
+
+Booking->>Booking: FAILED
+
+end
 ```
 
-**Movie Service (`movie-depl`)**
+---
 
-```yaml
-JWT_KEY: (from secret: jwt-secret)
-DATABASE_URL: postgresql://postgres:postgres@movie-postgres-cluster-ip-srv:5432/movie
+# Kubernetes Components
+
+| Component       | Description                        |
+| --------------- | ---------------------------------- |
+| NGINX Ingress   | External entry point               |
+| Auth Service    | Authentication & RBAC              |
+| Movie Service   | Movie Catalog                      |
+| Theater Service | Theater / Screen / Seat Management |
+| Show Service    | Show Scheduling & Seat Inventory   |
+| Booking Service | Booking Aggregate & Saga           |
+| PostgreSQL      | Dedicated database per service     |
+| Debezium        | Change Data Capture                |
+| Apache Kafka    | Event Bus                          |
+| Strimzi         | Kafka Operator                     |
+
+---
+
+# Database Ownership
+
+Each service owns its own PostgreSQL database.
+
+```
+Auth
+ └── auth-db
+
+Movie
+ └── movie-db
+
+Theater
+ └── theater-db
+
+Show
+ └── show-db
+
+Booking
+ └── booking-db
 ```
 
-**Database Pods**
+No service directly queries another service's database.
 
-```yaml
-POSTGRES_DB: auth / movie
-POSTGRES_USER: postgres
-POSTGRES_PASSWORD: postgres
+---
+
+# Communication
+
+## Synchronous
+
+REST APIs
+
+```
+Client
+
+↓
+
+Ingress
+
+↓
+
+Microservice
 ```
 
-## Data Flow
+Used for:
 
-1. **Client Request** → Ingress (`book-my-movie.dev`)
-2. **Ingress** routes to Auth/Movie services via ClusterIP
-3. **Microservices** (`auth-container`, `movie-container`) process requests
-4. **Database Connections**: Microservices connect to their respective PostgreSQL databases
-5. **Authentication**: Both services use shared JWT secret
+- Authentication
+- Movie APIs
+- Theater APIs
+- Show APIs
+- Booking APIs
 
-## How to Deploy
+---
 
-```bash
-# Apply all k8s configurations
-kubectl apply -f infra/k8s/
+## Asynchronous
 
-# Create JWT secret (if not exists)
-kubectl create secret generic jwt-secret --from-literal=JWT_KEY=your-jwt-secret
+Kafka Events
 
-# Check deployment status
-kubectl get deployments
-kubectl get pods
-kubectl get services
+```
+Service
+
+↓
+
+Outbox
+
+↓
+
+PostgreSQL WAL
+
+↓
+
+Debezium
+
+↓
+
+Kafka
+
+↓
+
+Consumer
+
+↓
+
+Projection
 ```
 
-## Development Notes
+Used for:
 
-- **Skaffold** is configured for local development (see `skaffold.yaml`)
-- Services communicate via ClusterIP (internal cluster networking)
-- PostgreSQL databases are persistent within pods (no PersistentVolumes configured)
-- JWT authentication shared across services via Kubernetes secrets
+- Projection updates
+- Booking Saga
+- Seat synchronization
+- Cross-service communication
+
+---
+
+# Current Event Flow
+
+Implemented:
+
+```
+Theater
+
+↓
+
+ScreenCreated
+
+↓
+
+Show Projection
+```
+
+```
+Theater
+
+↓
+
+SeatCreated
+
+↓
+
+Show Projection
+```
+
+```
+Theater
+
+↓
+
+ScreenUpdated
+
+↓
+
+Show Projection
+```
+
+```
+Theater
+
+↓
+
+SeatDeleted
+
+↓
+
+Show Projection
+```
+
+```
+Booking
+
+↓
+
+BookingCreated
+
+↓
+
+Show
+
+↓
+
+Seat Lock (In Progress)
+```
+
+---
+
+# Shared Library
+
+```
+@adarsh-tickets/shared
+```
+
+Contains:
+
+- JWT Authentication
+- RBAC
+- Common Errors
+- Kafka Producer Manager
+- Kafka Consumer Manager
+- Event Contracts
+- Avro Serialization
+- Schema Registry
+- Dead Letter Publisher
+- Kafka Configuration
+- Middleware
+- Utility Functions
+
+---
+
+# Reliability Patterns
+
+Implemented:
+
+- Transactional Outbox Pattern
+- Debezium Change Data Capture
+- Apache Kafka
+- Apache Avro Serialization
+- Schema Registry
+- Dead Letter Topics
+- Idempotent Kafka Producer
+- Consumer Abstraction
+- CQRS Read Projections
+- Optimistic Concurrency Control
+
+In Progress:
+
+- Orchestrated Saga
+- Seat Locking
+- Booking Compensation
+- Payment Workflow
+- Pessimistic Locking for Seat Reservation
+
+---
+
+# Local Development
+
+```
+skaffold dev
+```
+
+Skaffold automatically:
+
+- Builds Docker images
+- Deploys Kubernetes resources
+- Watches file changes
+- Syncs code into running containers
+- Restarts affected services

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking
+  template:
+    metadata:
+      labels:
+        app: booking
+    spec:
+      containers:
+        - name: booking-container
+          image: adarsh893/book-my-movie-booking
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@booking-postgres-cluster-ip-srv:5432/booking
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-cluster-ip-srv
+spec:
+  selector:
+    app: booking
+  ports:
+    - name: booking-port
+      protocol: TCP
+      port: 3001
+      targetPort: 3001

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-postgres-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-postgres
+  template:
+    metadata:
+      labels:
+        app: booking-postgres
+    spec:
+      containers:
+        - name: booking-postgres-container
+          image: postgres:16
+          args:
+            - "-c"
+            - "wal_level=logical"
+            - "-c"
+            - "max_replication_slots=10"
+            - "-c"
+            - "max_wal_senders=10"
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: POSTGRES_DB
+              value: booking
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+
+
+## cluster ip service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-postgres-cluster-ip-srv
+spec:
+  selector:
+    app: booking-postgres
+  ports:
+    - name: booking-postgres-port
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

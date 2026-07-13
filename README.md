@@ -1,86 +1,352 @@
-# BookMyMovie
+# 🎬 BookMyMovie
 
-A scalable movie ticket booking platform inspired by BookMyShow, built using Node.js, TypeScript, PostgreSQL, Prisma, Kubernetes, and event-driven architecture.
+> A production-oriented movie ticket booking platform inspired by **BookMyShow**, built to explore scalable backend architecture, event-driven microservices, and distributed systems using **Node.js, TypeScript, PostgreSQL, Apache Kafka, Debezium, Prisma, Docker, and Kubernetes**.
 
-## Overview
+---
 
-BookMyMovie allows users to browse movies, discover theaters, view show timings, reserve seats, and book tickets. The project is designed to demonstrate modern backend engineering concepts including microservices, distributed systems, role-based access control (RBAC), event-driven communication, and Saga orchestration.
+## 📌 Project Status
 
-## Infrastructure diagram
+| Module                    | Status         |
+| ------------------------- | -------------- |
+| 🔐 Authentication Service | ✅ Complete    |
+| 🎬 Movie Service          | ✅ Complete    |
+| 🏢 Theater Service        | ✅ Complete    |
+| 🎟️ Show Service           | ✅ Complete    |
+| 📦 Shared SDK             | ✅ Complete    |
+| 📨 Kafka Infrastructure   | ✅ Complete    |
+| 📤 Transactional Outbox   | ✅ Complete    |
+| 🔄 Debezium CDC           | ✅ Complete    |
+| 📖 CQRS Read Projections  | ✅ Complete    |
+| 🎫 Booking Service        | 🚧 In Progress |
+| 💳 Payment Service        | 📋 Planned     |
+| 🔔 Notification Service   | 📋 Planned     |
 
-<img width="2837" height="4300" alt="Movie Booking Auth Service-2026-06-22-174452" src="https://github.com/user-attachments/assets/c7cbea0f-e56a-4b08-840e-103f75a552d0" />
+---
 
-https://miro.com/app/board/uXjVHDx8I3A=/?share_link_id=878606900324
+# Why This Project?
 
-## Features
+Most movie booking applications focus primarily on CRUD operations.
 
-### Authentication & Authorization
+The objective of **BookMyMovie** is different.
 
-- User registration and login
-- JWT-based authentication
+This project focuses on implementing **production-grade backend engineering concepts** used in modern distributed systems, including:
+
+- Microservice Architecture
+- Domain-Driven Design (DDD)
+- Event-Driven Architecture
+- CQRS
+- Transactional Outbox Pattern
+- Debezium Change Data Capture (CDC)
+- Saga Orchestration
+- Eventual Consistency
+- Optimistic Concurrency Control
+- Kubernetes Deployment
+
+---
+
+# 📚 Documentation
+
+| Document                                                                 | Description                                                            |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [README.md](README.md)                                                   | Project overview, architecture and implementation status               |
+| [INFRASTRUCTURE.md](INFRASTRUCTURE.md)                                   | Kubernetes infrastructure, Kafka, Debezium and deployment architecture |
+| [migration-creation-using-prisma.md](migration-creation-using-prisma.md) | Prisma setup, PostgreSQL configuration and migration workflow          |
+| [new-service-creation.md](new-service-creation.md)                       | Standard process for creating a new microservice                       |
+| [debugging.md](debugging.md)                                             | Debugging guide for Kubernetes, Kafka and local development            |
+| [testing.md](testing.md)                                                 | Testing strategy and future testing roadmap                            |
+| [service-port.txt](service-port.txt)                                     | Port allocation for all microservices                                  |
+
+---
+
+# 📁 Repository Structure
+
+```text
+book-my-movie/
+
+├── auth/
+├── movie/
+├── theater/
+├── show/
+├── booking/
+├── shared/
+│
+├── infra/
+│
+├── README.md
+├── INFRASTRUCTURE.md
+├── migration-creation-using-prisma.md
+├── new-service-creation.md
+├── debugging.md
+├── testing.md
+└── skaffold.yaml
+```
+
+---
+
+# 🏗 Infrastructure
+
+> Infrastructure architecture and Kubernetes deployment are documented in **INFRASTRUCTURE.md**.
+
+(Add your updated infrastructure diagram here.)
+
+---
+
+# 🏛 Architecture
+
+The platform follows **Domain-Driven Design (DDD)**.
+
+Every microservice owns:
+
+- Business Logic
+- Database
+- Domain Events
+- Read Projections
+
+Current Services:
+
+| Service            | Responsibility                                    |
+| ------------------ | ------------------------------------------------- |
+| 🔐 Auth Service    | Authentication, JWT, RBAC                         |
+| 🎬 Movie Service   | Movie Catalog                                     |
+| 🏢 Theater Service | Theater, Screen & Seat Management                 |
+| 🎟️ Show Service    | Show Scheduling & Seat Inventory                  |
+| 🎫 Booking Service | Booking Aggregate & Saga (In Progress)            |
+| 📦 Shared SDK      | Authentication, Kafka Framework, Common Utilities |
+
+---
+
+# ✨ Features
+
+## 🔐 Authentication
+
+- JWT Authentication
+- User Registration
+- Login
 - Role-Based Access Control (RBAC)
-- Predefined roles:
-  - ADMIN
-  - THEATER_OWNER
-  - USER
+- Permission-based Authorization
 
-- Permission-based route authorization
+---
 
-### Movie Management
+## 🎬 Movie Service
 
-- Movie catalog management
-- Poster and trailer support
-- Bulk movie import support
-- Search and filtering capabilities
+- Movie CRUD
+- Poster & Trailer Metadata
+- Search
+- Bulk Import
 
-### Theater Management
+---
 
-- Theater creation and management
-- Screen management
-- Seat layout configuration
-- Theater owner onboarding
+## 🏢 Theater Service
 
-### Show Management
+- Theater CRUD
+- Screen Management
+- Seat Layout Management
+- Bulk Seat Creation
+- Bulk Seat Update
+- Bulk Seat Delete
 
-- Show scheduling
-- Screen allocation
-- Show seat generation
-- Seat availability tracking
+---
 
-### Booking System
+## 🎟️ Show Service
 
-- Seat reservation
-- Booking confirmation
-- Booking cancellation
-- Booking history
+- Show Scheduling
+- Show Seat Generation
+- Seat Pricing
+- Seat Availability
+- CQRS Read Projections
+- Kafka Event Consumers
 
-### Distributed Systems Concepts
+---
 
-- Event-driven communication using NATS
-- Service-to-service messaging
-- Event sourcing patterns
-- Saga orchestration for booking workflows
-- Compensation handling for payment failures
+## 🎫 Booking Service _(In Progress)_
 
-### AI Incident Summarizer (Planned)
+Implemented:
 
-- Consumes distributed system events
-- Generates human-readable incident summaries
-- Assists in operational monitoring and debugging
-- Demonstrates practical GenAI integration in backend systems
+- Booking Aggregate
+- Booking Seat Aggregate
+- CQRS Read Projection
+- Transactional Outbox
+- Saga Design
 
-## Technology Stack
+Upcoming:
 
-### Backend
+- Seat Locking
+- Payment Workflow
+- Booking Confirmation
+- Booking Expiration
+- Compensation Workflow
+
+---
+
+# 🌍 Distributed Systems
+
+## Event-Driven Architecture
+
+Implemented using:
+
+- Apache Kafka
+- Apache Avro
+- Schema Registry
+- Dead Letter Topics (DLT)
+
+---
+
+## Transactional Outbox Pattern
+
+Every business transaction persists:
+
+- Aggregate changes
+- Outbox event
+
+inside a single PostgreSQL transaction.
+
+```
+Business Transaction
+
+        │
+
+        ▼
+
++--------------------------+
+| PostgreSQL Transaction   |
+|--------------------------|
+| Aggregate Update         |
+| Insert Outbox Event      |
++--------------------------+
+
+        │
+
+        ▼
+
+PostgreSQL WAL
+
+        │
+
+        ▼
+
+Debezium CDC
+
+        │
+
+        ▼
+
+Apache Kafka
+```
+
+---
+
+## CQRS Read Projections
+
+Services never directly query another service's database.
+
+Instead, local read models are maintained by consuming Kafka events.
+
+Current projections:
+
+- Movie Projection
+- Theater Projection
+- Show Projection
+- Show Seat Projection
+
+Benefits:
+
+- Loose Coupling
+- Independent Scaling
+- Local Reads
+- Eventual Consistency
+
+---
+
+## Saga Pattern _(In Progress)_
+
+Booking workflow follows an **Orchestrated Saga**.
+
+```
+Booking Service
+
+        │
+BookingCreated
+
+        ▼
+
+Show Service
+
+        │
+SeatsLocked
+
+        ▼
+
+Booking Service
+
+        │
+Payment Pending
+
+        ▼
+
+Payment Service
+
+        │
+PaymentSucceeded
+
+        ▼
+
+BookingConfirmed
+```
+
+Compensating actions are used instead of distributed transactions.
+
+---
+
+## Concurrency Control
+
+Implemented:
+
+- Aggregate Versioning
+- Optimistic Concurrency Control
+
+Planned:
+
+- Pessimistic Row-Level Locking for Seat Reservation
+
+---
+
+## Reliable Messaging
+
+Implemented:
+
+- Transactional Outbox
+- Debezium CDC
+- Kafka Consumers
+- Apache Avro
+- Schema Registry
+- Dead Letter Topics
+- Idempotent Kafka Producer
+- Retryable / Non-Retryable Consumer Errors
+
+---
+
+# 🛠 Technology Stack
+
+## Backend
 
 - Node.js
 - TypeScript
 - Express.js
+- Prisma ORM
 
 ### Database
 
 - PostgreSQL
-- Prisma ORM
+- PostgreSQL WAL
+- Debezium CDC
+
+### Messaging
+
+- Apache Kafka
+- Strimzi Operator
+- Apache Avro
+- Confluent Schema Registry
+- Dead Letter Topics
 
 ### Infrastructure
 
@@ -89,115 +355,117 @@ https://miro.com/app/board/uXjVHDx8I3A=/?share_link_id=878606900324
 - Skaffold
 - NGINX Ingress
 
-### Messaging
+### Security
 
-- NATS
+- JWT Authentication
+- Role-Based Access Control
+- Permission-Based Authorization
 
-### Authentication
+---
 
-- JWT
-- RBAC
+# 📦 Shared Internal SDK
 
-### AI (Planned)
+Reusable package:
 
-- LangChain
-- LLM-based Incident Analysis
-
-## Architecture
-
-Services are designed around business capabilities:
-
-- Auth Service
-- Movie Service
-- Theater Service
-- Booking Service
-
-Shared utilities are published as a reusable npm package:
-
+```text
 @adarsh-tickets/shared
-
-```mermaid
-flowchart LR
-
-    Client
-
-    subgraph Theater Service
-
-        API[REST API]
-
-        Prisma
-
-    end
-
-    subgraph PostgreSQL
-
-        Screen[(screen)]
-
-        Outbox[(outbox)]
-
-        WAL[(WAL)]
-
-    end
-
-    subgraph Debezium
-
-        Publication
-
-        Slot
-
-        Connector
-
-        SMT[Outbox Event Router]
-
-    end
-
-    subgraph Kafka
-
-        Topic[(theater-topic)]
-    end
-
-    subgraph Show Service
-
-        Consumer
-
-        Projection[(Local Database)]
-
-    end
-
-    Client --> API
-
-    API --> Prisma
-
-    Prisma --> Screen
-
-    Prisma --> Outbox
-
-    Screen --> WAL
-    Outbox --> WAL
-
-    WAL --> Publication
-
-    Publication --> Slot
-
-    Slot --> Connector
-
-    Connector --> SMT
-
-    SMT --> Topic
-
-    Topic --> Consumer
-
-    Consumer --> Projection
 ```
 
-## Goals
+Contains:
 
-This project focuses on learning and demonstrating:
+- JWT Middleware
+- RBAC
+- Kafka Producer Manager
+- Kafka Consumer Manager
+- Event Contracts
+- Avro Serialization
+- Schema Registry Integration
+- Common Errors
+- Middleware
+- Utility Functions
+
+---
+
+# 🚀 Engineering Highlights
+
+### Architecture
 
 - Microservice Architecture
-- Distributed Systems
-- Event-Driven Design
-- Saga Pattern
-- Kubernetes Deployment
-- High-Level System Design
-- Production-Oriented Backend Development
+- Domain-Driven Design (DDD)
+- Database per Service
+- Shared Internal SDK
+
+### Distributed Systems
+
+- Event-Driven Architecture
+- Transactional Outbox Pattern
+- Debezium Change Data Capture
+- CQRS Read Projections
+- Eventual Consistency
+- Saga Orchestration
+
+### Messaging
+
+- Apache Kafka
+- Apache Avro
+- Schema Registry
+- Dead Letter Topics
+- Idempotent Producer
+- Consumer Framework
+
+### Reliability
+
+- Optimistic Concurrency Control
+- Aggregate Versioning
+- Retryable Consumers
+- Non-Retryable Consumers
+
+### Infrastructure
+
+- Docker
+- Kubernetes
+- Skaffold
+- NGINX Ingress
+
+---
+
+# 🗺 Roadmap
+
+## Booking
+
+- Seat Locking
+- Booking Confirmation
+- Booking Expiration
+- Compensation Events
+
+## Payment
+
+- Payment Service
+
+## Platform
+
+- Notification Service
+- Redis
+
+## AI
+
+- AI Incident Summarizer
+- Event Timeline Generator
+
+---
+
+# 📖 Key Learnings
+
+This project was built to gain practical experience with production backend architecture.
+
+Key concepts explored:
+
+- Designing microservices around business domains
+- Building reliable event-driven systems
+- Implementing the Transactional Outbox Pattern
+- Using Debezium for Change Data Capture
+- Maintaining CQRS Read Projections
+- Designing Saga workflows
+- Building reusable internal libraries
+- Applying optimistic concurrency control
+- Deploying distributed systems on Kubernetes
