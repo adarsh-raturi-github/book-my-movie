@@ -53,7 +53,7 @@ This project focuses on implementing **production-grade backend engineering conc
 | [migration-creation-using-prisma.md](migration-creation-using-prisma.md) | Prisma setup, PostgreSQL configuration and migration workflow          |
 | [new-service-creation.md](new-service-creation.md)                       | Standard process for creating a new microservice                       |
 | [debugging.md](debugging.md)                                             | Debugging guide for Kubernetes, Kafka and local development            |
-| [testing.md](testing.md)                                                 | Testing strategy and future testing roadmap                            |
+| [testing.md](testing.md)                                                 | Testing strategy of strimzi and kafka                            |
 | [service-port.txt](service-port.txt)                                     | Port allocation for all microservices                                  |
 
 ---
@@ -87,7 +87,8 @@ book-my-movie/
 
 > Infrastructure architecture and Kubernetes deployment are documented in **INFRASTRUCTURE.md**.
 
-(Add your updated infrastructure diagram here.)
+<img width="1536" height="1024" alt="Image" src="https://github.com/user-attachments/assets/370bd87b-c77c-44a7-83e2-dac7cf274c9d" />
+
 
 ---
 
