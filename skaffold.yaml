@@ -40,3 +40,11 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+    - image: adarsh893/book-my-movie-booking
+      context: booking
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .

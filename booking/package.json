@@ -1,0 +1,45 @@
+{
+  "name": "booking",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watchAll --no-cache",
+    "start": "ts-node-dev --poll src/index.ts",
+    "migrate": "prisma migrate deploy",
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "jest": {
+    "pretest": "js-test",
+    "testEnivornment": "node",
+    "setupFilesAfterEnv": [
+      "./src/test/setup.ts"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@adarsh-tickets/shared": "^1.0.33",
+    "@prisma/client": "^6.10.1",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/supertest": "^7.2.0",
+    "db-migrate-pg": "^1.5.2",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "jest": "^30.4.2",
+    "jsonwebtoken": "^9.0.3",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.11",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "prisma": "^6.10.1",
+    "ts-node": "^10.9.2"
+  }
+}

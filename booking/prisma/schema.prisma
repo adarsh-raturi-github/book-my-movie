@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum ShowSeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+  BLOCKED
+}
+enum BookingStatus {
+  CREATED
+  PAYMENT_PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+model Booking {
+  id              String         @id @default(uuid())
+
+  userId          String         @map("user_id")
+  showId          String         @map("show_id")
+  paymentId       String?        @map("payment_id")
+
+  status          BookingStatus
+
+  totalAmount     Decimal        @db.Decimal(10, 2) @map("total_amount")
+  expiresAt       DateTime       @map("expires_at")
+
+  entityVersion   Int            @default(1) @map("entity_version")
+
+  deleted         Boolean        @default(false)
+  deletedAt       DateTime?      @map("deleted_at")
+  deletedBy       String?        @map("deleted_by")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  createdBy       String         @map("created_by")
+
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  updatedBy       String?        @map("updated_by")
+
+  bookingSeats    BookingSeat[]
+
+  @@index([userId])
+  @@index([showId])
+  @@index([paymentId])
+  @@index([status])
+  @@index([expiresAt])
+
+  @@map("booking")
+}
+
+model BookingSeat {
+  id              String    @id @default(uuid())
+
+  bookingId       String    @map("booking_id")
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  showSeatId      String    @map("show_seat_id")
+
+  price           Decimal   @db.Decimal(10, 2)
+
+  deleted         Boolean   @default(false)
+  deletedAt       DateTime? @map("deleted_at")
+  deletedBy       String?   @map("deleted_by")
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  createdBy       String    @map("created_by")
+
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  updatedBy       String?   @map("updated_by")
+
+  @@index([bookingId])
+  @@index([showSeatId])
+
+  @@map("booking_seat")
+}
+
+model ShowSeatProjection {
+  id              String          @id
+
+  showId          String          @map("show_id")
+  seatId          String          @map("seat_id")
+
+  price           Decimal         @db.Decimal(10, 2)
+
+  status          ShowSeatStatus
+
+  bookingId       String?         @map("booking_id")
+
+  lockedUntil     DateTime?       @map("locked_until")
+
+  entityVersion   Int             @map("entity_version")
+
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+
+  @@index([showId])
+  @@index([seatId])
+  @@index([status])
+  @@index([bookingId])
+  @@index([lockedUntil])
+
+  @@map("show_seat_projection")
+}

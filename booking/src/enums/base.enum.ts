@@ -1,0 +1,14 @@
+export enum ShowSeatStatusEnum {
+  AVAILABLE = "AVAILABLE",
+  LOCKED = "LOCKED",
+  BOOKED = "BOOKED",
+  BLOCKED = "BLOCKED",
+}
+
+export enum BookingStatusEnum {
+  CREATED = "CREATED",
+  PAYMENT_PENDING = "PAYMENT_PENDING",
+  CONFIRMED = "CONFIRMED",
+  CANCELLED = "CANCELLED",
+  EXPIRED = "EXPIRED",
+}
