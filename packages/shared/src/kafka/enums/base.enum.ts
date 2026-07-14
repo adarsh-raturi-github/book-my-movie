@@ -10,6 +10,7 @@ export enum KafkaAggregateType {
   MOVIE = "MOVIE",
   SCREEN = "SCREEN",
   THEATER = "THEATER",
+  BOOKING = "BOOKING",
   SHOW = "SHOW",
   SEAT = "SEAT",
 }
@@ -33,7 +34,17 @@ export enum KafkaEventTypes {
 
   SEAT_CREATED = "seat-created",
   SEAT_UPDATED = "seat-updated",
+  SEAT_LOCKED = "seat-locked",
+  SEAT_LOCK_FAILED = "seat-lock-failed",
   SEAT_DELETED = "seat-deleted",
+
+  BOOKING_CREATED = "booking-created",
+  BOOKING_CONFIRMED = "booking-confirmed",
+  BOOKING_CANCELLED = "booking-cancelled",
+
+  PAYMENT_STARTED = "payment-started",
+  PAYMENT_SUCCEEDED = "payment-succeeded",
+  PAYMENT_FAILED = "payment-failed",
 
   /**
    * PAYMENT_INITIATED

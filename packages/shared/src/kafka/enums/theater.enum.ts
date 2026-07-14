@@ -30,3 +30,5 @@ export enum SeatStatusEnum {
   ACTIVE = "ACTIVE",
   BLOCKED = "BLOCKED",
 }
+
+
