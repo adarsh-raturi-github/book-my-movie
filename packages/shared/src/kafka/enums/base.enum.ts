@@ -13,9 +13,10 @@ export enum KafkaAggregateType {
   BOOKING = "BOOKING",
   SHOW = "SHOW",
   SEAT = "SEAT",
+  SHOW_SEAT = "SHOW_SEAT",
 }
 
-export enum KafkaEventTypes {
+export enum DomainEventTypes {
   MOVIE_CREATED = "movie-created",
   MOVIE_UPDATED = "movie-updated",
   MOVIE_DELETED = "movie-deleted",
@@ -52,3 +53,5 @@ export enum BookingEventTypes {
   PAYMENT_FAILED = "payment-failed",
   /** -------------------------------------------------------------------------- */
 }
+
+export type KafkaEventTypes = DomainEventTypes | BookingEventTypes;
