@@ -10,11 +10,13 @@ export enum KafkaAggregateType {
   MOVIE = "MOVIE",
   SCREEN = "SCREEN",
   THEATER = "THEATER",
+  BOOKING = "BOOKING",
   SHOW = "SHOW",
   SEAT = "SEAT",
+  SHOW_SEAT = "SHOW_SEAT",
 }
 
-export enum KafkaEventTypes {
+export enum DomainEventTypes {
   MOVIE_CREATED = "movie-created",
   MOVIE_UPDATED = "movie-updated",
   MOVIE_DELETED = "movie-deleted",
@@ -27,42 +29,28 @@ export enum KafkaEventTypes {
   SCREEN_UPDATED = "screen-updated",
   SCREEN_DELETED = "screen-deleted",
 
-  // SHOW_CREATED = "show-created",
-  // SHOW_UPDATED = "show-updated",
-  // SHOW_DELETED = "show-deleted",
+  SHOW_SEAT_CREATED = "show-seat-created",
+  SHOW_SEAT_UPDATED = "show-seat-updated",
+  SHOW_SEAT_DELETED = "show-seat-deleted",
 
   SEAT_CREATED = "seat-created",
   SEAT_UPDATED = "seat-updated",
   SEAT_DELETED = "seat-deleted",
-
-  /**
-   * PAYMENT_INITIATED
-
-PAYMENT_COMPLETED
-
-PAYMENT_FAILED
-
-PAYMENT_REFUNDED
-
-
-BOOKING_CREATED
-
-BOOKING_CONFIRMED
-
-BOOKING_CANCELLED
-
-BOOKING_EXPIRED
-
-
-
-SHOW_CREATED
-
-SHOW_UPDATED
-
-SHOW_CANCELLED
-
-SHOW_STARTED
-
-SHOW_COMPLETED
-   */
 }
+
+export enum BookingEventTypes {
+  /** -----------------these are saga related events------------------------- */
+  SEAT_LOCKED = "seat-locked",
+  SEAT_LOCK_FAILED = "seat-lock-failed",
+
+  BOOKING_CREATED = "booking-created",
+  BOOKING_CONFIRMED = "booking-confirmed",
+  BOOKING_CANCELLED = "booking-cancelled",
+
+  PAYMENT_STARTED = "payment-started",
+  PAYMENT_SUCCEEDED = "payment-succeeded",
+  PAYMENT_FAILED = "payment-failed",
+  /** -------------------------------------------------------------------------- */
+}
+
+export type KafkaEventTypes = DomainEventTypes | BookingEventTypes;

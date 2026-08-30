@@ -1,4 +1,4 @@
-import { KafkaEventTypes, KafkaTopic } from "../enums";
+import { DomainEventTypes, KafkaTopic } from "../enums";
 import { IMessageDeserializationStrategy } from "../strategies";
 
 export interface SharedKafkaConfig {
@@ -9,7 +9,7 @@ export interface SharedKafkaConfig {
 }
 export interface KafkaEventDefinition {
   topic: KafkaTopic;
-  eventType: KafkaEventTypes;
+  eventType: DomainEventTypes;
   serviceName: string;
 }
 

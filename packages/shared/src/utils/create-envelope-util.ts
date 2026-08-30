@@ -11,7 +11,7 @@ export const createEnvelope = <T>(
     eventType: definition.eventType,
     occurredAt: new Date().toISOString(),
     producer: definition.serviceName,
-    correlationId,
+    correlationId, // in saga workflow it helps to check in which breaks
     payload: value,
   };
 };

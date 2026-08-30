@@ -12,37 +12,40 @@ import { param } from "express-validator";
 const router = express.Router();
 
 router.get(
-  "/api/theaters/:theaterId/screens",
+  "/api/screens/:screenId/seats",
   nonAuthorizeMiddleware,
   checkPermission(Permission.THEATER_READ),
-  [param("theaterId").isUUID().withMessage("Invalid theater id")],
+  [param("screenId").isUUID().withMessage("Invalid screenId id")],
   requestValidatorMiddleware,
   async (req: Request, res: Response) => {
-    const { theaterId } = req.params as {
-      theaterId: string;
+    const { screenId } = req.params as {
+      screenId: string;
     };
     // findMany always return [] never return null
-    const theater = await prisma.theater.findFirst({
+    const screen = await prisma.screen.findFirst({
       where: {
-        id: theaterId,
+        id: screenId,
         deleted: false,
       },
     });
 
-    if (!theater) {
+    if (!screen) {
       throw new NotFoundError();
     }
 
-    const screens = await prisma.screen.findMany({
+    const seats = await prisma.seat.findMany({
       where: {
-        theaterId,
+        screenId,
         deleted: false,
       },
       orderBy: {
-        name: "asc",
+        rowLabel: "asc",
+        seatNumber: "asc",
       },
     });
 
-    return res.send(screens);
+    return res.send(seats);
   },
 );
+
+export { router as seatListRoute };

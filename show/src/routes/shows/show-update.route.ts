@@ -23,6 +23,7 @@ import {
   Permission,
   requestValidatorMiddleware,
   Role,
+  ShowStatusEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
@@ -36,7 +37,6 @@ import {
   ShowStatus,
 } from "@prisma/client";
 import { pricingService } from "../../services/pricing.service";
-import { ShowStatusEnum } from "../../enums";
 const router = express.Router();
 
 router.patch(

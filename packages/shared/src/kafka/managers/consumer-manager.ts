@@ -1,7 +1,7 @@
 import { Consumer } from "@confluentinc/kafka-javascript/types/kafkajs";
 import { getKafkaClient } from "../client";
 import { getKafkaConfig } from "../config";
-import { KafkaEventTypes, KafkaTopic } from "../enums";
+import { DomainEventTypes, KafkaTopic } from "../enums";
 import { NonRetryableError, RetryableError } from "../errors";
 import { IMessageDeserializationStrategy } from "../strategies/deserialization/interfaces";
 import { MessageHandler } from "../types";
@@ -27,7 +27,7 @@ export class ConsumerManager {
     private readonly deadLetterPublisher: DeadLetterPublisher,
   ) {}
   private readonly handlers = new Map<
-    KafkaEventTypes,
+    DomainEventTypes,
     {
       topic: KafkaTopic;
       handler: MessageHandler<any>;
@@ -72,7 +72,7 @@ export class ConsumerManager {
 
   async register<T>(
     topic: KafkaTopic,
-    eventType: KafkaEventTypes,
+    eventType: DomainEventTypes,
     handler: MessageHandler<T>,
   ) {
     this.handlers.set(eventType, {
@@ -135,7 +135,7 @@ export class ConsumerManager {
           return;
         }
         const handler = this.handlers.get(
-          event.eventType as KafkaEventTypes,
+          event.eventType as DomainEventTypes,
         )?.handler;
         if (!handler) {
           await this.deadLetterPublisher.publish(

@@ -5,7 +5,7 @@ import {
   createEnvelope,
   IMovieUpdateEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   MovieCertificateEnum,
   MovieStatusEnum,
@@ -162,7 +162,7 @@ router.patch(
         const event = createEnvelope<IMovieUpdateEventData>(
           {
             topic: KafkaTopic.MOVIE_TOPIC,
-            eventType: KafkaEventTypes.MOVIE_UPDATED,
+            eventType: DomainEventTypes.MOVIE_UPDATED,
             serviceName: process.env.SERVICE_NAME!,
           },
           {
@@ -183,7 +183,7 @@ router.patch(
             aggregateType: KafkaAggregateType.MOVIE,
             aggregateId: movie.id,
             topic: KafkaTopic.MOVIE_TOPIC,
-            eventType: KafkaEventTypes.MOVIE_UPDATED,
+            eventType: DomainEventTypes.MOVIE_UPDATED,
             eventVersion: movie.entityVersion,
             payload: event as unknown as Prisma.InputJsonValue,
           },

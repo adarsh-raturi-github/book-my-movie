@@ -3,7 +3,7 @@ import {
   createEnvelope,
   IMovieDeleteEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
@@ -59,7 +59,7 @@ router.delete(
       const event = createEnvelope<IMovieDeleteEventData>(
         {
           topic: KafkaTopic.MOVIE_TOPIC,
-          eventType: KafkaEventTypes.MOVIE_DELETED,
+          eventType: DomainEventTypes.MOVIE_DELETED,
           serviceName: process.env.SERVICE_NAME!,
         },
         {
@@ -73,7 +73,7 @@ router.delete(
           aggregateType: KafkaAggregateType.MOVIE,
           aggregateId: updatedMovie.id,
           topic: KafkaTopic.MOVIE_TOPIC,
-          eventType: KafkaEventTypes.MOVIE_DELETED,
+          eventType: DomainEventTypes.MOVIE_DELETED,
           eventVersion: updatedMovie.entityVersion,
           payload: event as unknown as Prisma.InputJsonValue,
         },

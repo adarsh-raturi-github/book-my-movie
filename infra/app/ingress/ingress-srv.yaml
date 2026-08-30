@@ -31,6 +31,13 @@ spec:
                 name: theater-cluster-ip-srv
                 port:
                   number: 3002
+          - path: /api/screens/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: theater-cluster-ip-srv
+                port:
+                  number: 3002
           - path: /api/shows/?(.*)
             pathType: ImplementationSpecific
             backend:

@@ -1,16 +1,16 @@
 import {
   createKafka,
+  DomainEventTypes,
   initializeKafka,
   JsonDeserialization,
-  KafkaEventTypes,
   KafkaTopic,
   NotFoundError,
 } from "@adarsh-tickets/shared";
 import { app } from "./app";
 import dotenv from "dotenv";
-import { ScreenCreatedConsumer } from "./events/consumers/screen";
 import { ScreenUpdatedConsumer } from "./events/consumers/screen/screen-updated.consumer";
 import { ScreenDeletedConsumer } from "./events/consumers/screen/screen-deleted.consumer";
+import { ScreenCreatedConsumer } from "./events/consumers";
 
 dotenv.config();
 const start = async () => {
@@ -54,17 +54,17 @@ const start = async () => {
 
     consumer.register(
       KafkaTopic.THEATER_TOPIC,
-      KafkaEventTypes.SCREEN_CREATED,
+      DomainEventTypes.SCREEN_CREATED,
       new ScreenCreatedConsumer().onMessage,
     );
     consumer.register(
       KafkaTopic.THEATER_TOPIC,
-      KafkaEventTypes.SCREEN_UPDATED,
+      DomainEventTypes.SCREEN_UPDATED,
       new ScreenUpdatedConsumer().onMessage,
     );
     consumer.register(
       KafkaTopic.THEATER_TOPIC,
-      KafkaEventTypes.SCREEN_DELETED,
+      DomainEventTypes.SCREEN_DELETED,
       new ScreenDeletedConsumer().onMessage,
     );
     await consumer.start();

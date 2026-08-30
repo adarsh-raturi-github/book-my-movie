@@ -2,7 +2,7 @@ import {
   EventEnvelope,
   IEventConsumer,
   IScreenCreateEventData,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   ScreenStatusEnum,
   ScreenTypeEnum,
@@ -12,7 +12,7 @@ import { stat } from "node:fs";
 import { PrismaErrorMapper } from "../../../services/prisma-error.mapper";
 export class MovieCreatedConsumer implements IEventConsumer<IScreenCreateEventData> {
   topic = KafkaTopic.THEATER_TOPIC;
-  eventType = KafkaEventTypes.SCREEN_CREATED;
+  eventType = DomainEventTypes.SCREEN_CREATED;
 
   async onMessage(event: EventEnvelope<IScreenCreateEventData>): Promise<void> {
     try {

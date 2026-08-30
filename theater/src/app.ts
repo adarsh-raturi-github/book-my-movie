@@ -4,6 +4,7 @@ import {
 } from "@adarsh-tickets/shared";
 import express from "express";
 import {
+  bulkCreateSeatRouter,
   createTheaterRouter,
   deleteTheaterRouter,
   getTheaterListRouter,
@@ -13,6 +14,7 @@ import {
   screengetRouter,
   screenListRouter,
   screenUpdateRouter,
+  seatListRoute,
   theaterUpdateRouter,
 } from "./routes";
 
@@ -33,6 +35,9 @@ app.use(screenDeleteRouter);
 app.use(screengetRouter);
 app.use(screenListRouter);
 app.use(screenUpdateRouter);
+
+app.use(bulkCreateSeatRouter);
+app.use(seatListRoute);
 
 app.use(errorHandlerMiddleware);
 

@@ -1,24 +1,21 @@
 import {
   BadRequestError,
+  BookingEventTypes,
   checkPermission,
   createEnvelope,
-  IScreenCreateEventData,
+  IBookingCreatedEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
-  NotAuthorizeError,
-  NotFoundError,
   Permission,
   requestValidatorMiddleware,
-  Role,
-  ScreenStatusEnum,
-  ScreenTypeEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
-import { prisma } from "../prisma.client";
 import { BookingStatusEnum, ShowSeatStatusEnum } from "../enums";
+import { EXPIRATION_WINDOW_SECONDS } from "../constants";
+import { prisma } from "../prisma.client";
+import { Prisma } from "@prisma/client";
 
 const router = express.Router();
 /**
@@ -30,7 +27,6 @@ Otherwise someone can book tickets for another user.
  */
 router.post(
   "/api/bookings",
-
   nonAuthorizeMiddleware,
   checkPermission(Permission.BOOKING_CREATE),
   [
@@ -59,7 +55,7 @@ router.post(
           { status: ShowSeatStatusEnum.AVAILABLE },
           {
             status: ShowSeatStatusEnum.LOCKED,
-            lockedUntil: { gte: 150000 },
+            lockedUntil: { lt: new Date() },
           },
         ],
       },
@@ -74,49 +70,52 @@ router.post(
     }
 
     await prisma.$transaction(async (tx) => {
+      const expiration = new Date();
+      expiration.setSeconds(
+        expiration.getSeconds() + EXPIRATION_WINDOW_SECONDS,
+      );
       const booking = await tx.booking.create({
         data: {
           userId: currentUser.id,
           showId,
           status: BookingStatusEnum.CREATED,
           totalAmount,
-          expiresAt: new Date(),
+          expiresAt: expiration,
           createdBy: currentUser.id,
         },
       });
       await tx.bookingSeat.createMany({
-        data: showSeats.map((d) => ({
+        data: showSeats.map((showSeat) => ({
           bookingId: booking.id,
-          showSeatId: d.id,
-          price: d.price,
+          showSeatId: showSeat.id,
+          price: showSeat.price,
           createdBy: currentUser.id,
         })),
       });
 
-      const event = createEnvelope<IBookingCreateData>(
+      const event = createEnvelope<IBookingCreatedEventData>(
         {
           topic: KafkaTopic.BOOKING_TOPIC,
-          eventType: KafkaEventTypes.BOOKING_CREATED,
+          eventType: BookingEventTypes.BOOKING_CREATED,
           serviceName: process.env.SERVICE_NAME!,
         },
         {
-          id: booking.id,
+          bookingId: booking.id,
           seatIds,
           showId,
           entityVersion: booking.entityVersion,
-          expiresAt: booking.expiresAt,
-          totalAmount: booking.totalAmount,
+          expiresAt: booking.expiresAt?.toISOString(),
+          totalAmount: +booking.totalAmount,
           userId: currentUser.id,
         },
         booking.id,
       );
-
       await tx.outbox.create({
         data: {
           aggregateType: KafkaAggregateType.BOOKING,
           aggregateId: booking.id,
           topic: KafkaTopic.BOOKING_TOPIC,
-          eventType: KafkaEventTypes.BOOKING_CREATED,
+          eventType: BookingEventTypes.BOOKING_CREATED,
           eventVersion: booking.entityVersion,
           payload: event as unknown as Prisma.InputJsonValue,
         },

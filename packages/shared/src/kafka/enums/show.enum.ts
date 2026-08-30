@@ -11,15 +11,3 @@ export enum ShowSeatStatusEnum {
   BOOKED = "BOOKED",
   BLOCKED = "BLOCKED",
 }
-
-export enum MovieCertificateEnum {
-  U = "U",
-  UA = "UA",
-  A = "A",
-}
-
-export enum MovieStatusEnum {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-}
-

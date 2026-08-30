@@ -2,7 +2,7 @@ import {
   EventEnvelope,
   IEventConsumer,
   IScreenUpdateEventData,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   NonRetryableError,
   RetryableError,
@@ -11,7 +11,7 @@ import { prisma } from "../../../prisma.client";
 import { PrismaErrorMapper } from "../../../services/prisma-error.mapper";
 export class ScreenUpdatedConsumer implements IEventConsumer<IScreenUpdateEventData> {
   topic = KafkaTopic.THEATER_TOPIC;
-  eventType = KafkaEventTypes.SCREEN_UPDATED;
+  eventType = DomainEventTypes.SCREEN_UPDATED;
 
   async onMessage(event: EventEnvelope<IScreenUpdateEventData>): Promise<void> {
     const { entityVersion, id, name, type, status } = event.payload;

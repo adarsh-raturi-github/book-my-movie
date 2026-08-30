@@ -3,7 +3,7 @@ import {
   createEnvelope,
   IScreenDeleteEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
@@ -83,7 +83,7 @@ router.delete(
       const event = createEnvelope<IScreenDeleteEventData>(
         {
           topic: KafkaTopic.THEATER_TOPIC,
-          eventType: KafkaEventTypes.SCREEN_DELETED,
+          eventType: DomainEventTypes.SCREEN_DELETED,
           serviceName: process.env.SERVICE_NAME!,
         },
         {
@@ -96,7 +96,7 @@ router.delete(
           aggregateType: KafkaAggregateType.SCREEN,
           aggregateId: id,
           topic: KafkaTopic.THEATER_TOPIC,
-          eventType: KafkaEventTypes.SCREEN_DELETED,
+          eventType: DomainEventTypes.SCREEN_DELETED,
           eventVersion: updatedScreen.entityVersion,
           payload: event as unknown as Prisma.InputJsonValue,
         },
