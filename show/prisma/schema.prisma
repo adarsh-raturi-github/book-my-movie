@@ -226,3 +226,29 @@ model SeatProjection {
 
   @@map("seat_projections")
 }
+
+model Outbox {
+  id String @id @default(uuid()) @db.Uuid
+
+  aggregateType String @map("aggregate_type")
+  aggregateId   String @db.Uuid @map("aggregate_id")
+
+  topic String
+
+  eventType    String @map("event_type")
+  eventVersion Int    @map("event_version")
+
+  payload Json
+
+  correlationId String? @db.Uuid @map("correlation_id")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([topic])
+  @@index([aggregateType, aggregateId])
+  @@index([createdAt])
+
+  @@map("outbox")
+}
+ 

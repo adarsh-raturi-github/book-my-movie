@@ -4,7 +4,7 @@ import {
   createEnvelope,
   ISeatCreateEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
@@ -43,8 +43,6 @@ router.post(
     body("seats.*.seatNumber")
       .isInt({ min: 1 })
       .withMessage("Seat number must be greater than 0"),
-
-    // body("seats.*.seatType").isIn(SEAT_TYPES).withMessage("Invalid seat type"),
   ],
   requestValidatorMiddleware,
 
@@ -158,12 +156,12 @@ router.post(
               aggregateType: KafkaAggregateType.SEAT,
               aggregateId: seat.id,
               topic: KafkaTopic.THEATER_TOPIC,
-              eventType: KafkaEventTypes.SEAT_CREATED,
+              eventType: DomainEventTypes.SEAT_CREATED,
               eventVersion: seat.entityVersion,
               payload: createEnvelope<ISeatCreateEventData>(
                 {
                   topic: KafkaTopic.THEATER_TOPIC,
-                  eventType: KafkaEventTypes.SEAT_CREATED,
+                  eventType: DomainEventTypes.SEAT_CREATED,
                   serviceName: process.env.SERVICE_NAME!,
                 },
                 {

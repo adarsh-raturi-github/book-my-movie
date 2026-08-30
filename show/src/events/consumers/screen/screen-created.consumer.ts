@@ -2,19 +2,20 @@ import {
   EventEnvelope,
   IEventConsumer,
   IScreenCreateEventData,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   ScreenStatusEnum,
   ScreenTypeEnum,
 } from "@adarsh-tickets/shared";
 import { prisma } from "../../../prisma.client";
-import { stat } from "node:fs";
 import { PrismaErrorMapper } from "../../../services/prisma-error.mapper";
-export class MovieCreatedConsumer implements IEventConsumer<IScreenCreateEventData> {
+export class ScreenCreatedConsumer implements IEventConsumer<IScreenCreateEventData> {
   topic = KafkaTopic.THEATER_TOPIC;
-  eventType = KafkaEventTypes.SCREEN_CREATED;
+  eventType = DomainEventTypes.SCREEN_CREATED;
 
   async onMessage(event: EventEnvelope<IScreenCreateEventData>): Promise<void> {
+    console.log("Screen created Listener");
+
     try {
       const { entityVersion, id, theaterId, name, type, status } =
         event.payload;

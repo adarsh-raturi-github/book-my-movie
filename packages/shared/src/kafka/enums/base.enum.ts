@@ -42,7 +42,6 @@ export enum BookingEventTypes {
   /** -----------------these are saga related events------------------------- */
   SEAT_LOCKED = "seat-locked",
   SEAT_LOCK_FAILED = "seat-lock-failed",
-  SEAT_DELETED = "seat-deleted",
 
   BOOKING_CREATED = "booking-created",
   BOOKING_CONFIRMED = "booking-confirmed",

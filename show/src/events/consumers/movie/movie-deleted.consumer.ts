@@ -3,7 +3,7 @@ import {
   IEventConsumer,
   IScreenCreateEventData,
   IScreenDeleteEventData,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   RetryableError,
 } from "@adarsh-tickets/shared";
@@ -11,7 +11,7 @@ import { prisma } from "../../../prisma.client";
 import { PrismaErrorMapper } from "../../../services/prisma-error.mapper";
 export class ScreenDeletedConsumer implements IEventConsumer<IScreenDeleteEventData> {
   topic = KafkaTopic.THEATER_TOPIC;
-  eventType = KafkaEventTypes.SCREEN_DELETED;
+  eventType = DomainEventTypes.SCREEN_DELETED;
 
   async onMessage(event: EventEnvelope<IScreenDeleteEventData>): Promise<void> {
     try {

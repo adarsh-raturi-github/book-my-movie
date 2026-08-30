@@ -3,9 +3,9 @@ import {
   BadRequestError,
   checkPermission,
   createEnvelope,
+  DomainEventTypes,
   IMovieCreatedEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
   KafkaTopic,
   MovieStatusEnum,
   nonAuthorizeMiddleware,
@@ -113,7 +113,7 @@ router.post(
         const event = createEnvelope<IMovieCreatedEventData>(
           {
             topic: KafkaTopic.MOVIE_TOPIC,
-            eventType: KafkaEventTypes.MOVIE_CREATED,
+            eventType: DomainEventTypes.MOVIE_CREATED,
             serviceName: process.env.SERVICE_NAME!,
           },
           {
@@ -134,7 +134,7 @@ router.post(
             aggregateType: KafkaAggregateType.MOVIE,
             aggregateId: movie.id,
             topic: KafkaTopic.MOVIE_TOPIC,
-            eventType: KafkaEventTypes.MOVIE_CREATED,
+            eventType: DomainEventTypes.MOVIE_CREATED,
             eventVersion: movie.entityVersion,
             payload: event as unknown as Prisma.InputJsonValue,
           },

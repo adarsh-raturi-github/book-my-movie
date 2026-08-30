@@ -2,9 +2,9 @@ import {
   BadRequestError,
   checkPermission,
   createEnvelope,
+  DomainEventTypes,
   IScreenCreateEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
@@ -103,7 +103,7 @@ router.post(
         const event = createEnvelope<IScreenCreateEventData>(
           {
             topic: KafkaTopic.THEATER_TOPIC,
-            eventType: KafkaEventTypes.SCREEN_CREATED,
+            eventType: DomainEventTypes.SCREEN_CREATED,
             serviceName: process.env.SERVICE_NAME!,
           },
           {
@@ -121,7 +121,7 @@ router.post(
             aggregateType: KafkaAggregateType.SCREEN,
             aggregateId: screen.id,
             topic: KafkaTopic.THEATER_TOPIC,
-            eventType: KafkaEventTypes.SCREEN_CREATED,
+            eventType: DomainEventTypes.SCREEN_CREATED,
             eventVersion: screen.entityVersion,
             payload: event as unknown as Prisma.InputJsonValue,
           },

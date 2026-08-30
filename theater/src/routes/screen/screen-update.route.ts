@@ -5,7 +5,7 @@ import {
   createEnvelope,
   IScreenUpdateEventData,
   KafkaAggregateType,
-  KafkaEventTypes,
+  DomainEventTypes,
   KafkaTopic,
   nonAuthorizeMiddleware,
   NotAuthorizeError,
@@ -141,7 +141,7 @@ router.patch(
       const event = createEnvelope<IScreenUpdateEventData>(
         {
           topic: KafkaTopic.THEATER_TOPIC,
-          eventType: KafkaEventTypes.SCREEN_UPDATED,
+          eventType: DomainEventTypes.SCREEN_UPDATED,
           serviceName: process.env.SERVICE_NAME!,
         },
         {
@@ -158,7 +158,7 @@ router.patch(
           aggregateType: KafkaAggregateType.SCREEN,
           aggregateId: id,
           topic: KafkaTopic.THEATER_TOPIC,
-          eventType: KafkaEventTypes.SCREEN_UPDATED,
+          eventType: DomainEventTypes.SCREEN_UPDATED,
           eventVersion: updatedScreen.entityVersion,
           payload: event as unknown as Prisma.InputJsonValue,
         },
