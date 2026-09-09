@@ -2,18 +2,13 @@
 PATCH /api/shows/:id
 
 Allowed fields:
-
-- status
 - startTime
 - endTime
 - bookingOpenAt
 
-Not allowed:
-
-- movieId
-- screenId
- */
-
+Status changes are handled by dedicated domain operations.
+movieId and screenId cannot be changed after show creation.
+*/
 import {
   BadRequestError,
   checkPermission,
@@ -44,10 +39,6 @@ router.patch(
   nonAuthorizeMiddleware,
   checkPermission(Permission.SHOW_UPDATE),
   [
-    body("movieId").optional().isUUID().withMessage("Invalid movie id"),
-
-    body("screenId").optional().isUUID().withMessage("Invalid screen id"),
-
     body("startTime")
       .optional()
       .notEmpty()
@@ -71,39 +62,34 @@ router.patch(
       .isISO8601()
       .withMessage("Invalid booking open time")
       .toDate(),
-
-    body("status").optional().isIn(Object.values(ShowStatus)),
   ],
   requestValidatorMiddleware,
   async (req: Request, res: Response) => {
-    let { screenId, movieId, startTime, endTime, bookingOpenAt, status } =
-      req.body;
+    let { startTime, endTime, bookingOpenAt } = req.body;
     const { id } = req.params as { id: string };
     const currentUser = req.currentUser!;
 
-    if (movieId) {
-      throw new BadRequestError("Editiing movie is not allowed");
-    }
-    if (screenId) {
-      throw new BadRequestError("Screen change is not allowed");
-    }
-
-    const show = await prisma.show.findFirst({
+    const existingShow = await prisma.show.findFirst({
       where: { id, deleted: false },
     });
 
-    if (!show) {
+    if (!existingShow) {
       throw new NotFoundError();
     }
 
-    if (show.createdBy !== currentUser.id && currentUser.role !== Role.ADMIN) {
+    if (
+      existingShow.createdBy !== currentUser.id &&
+      currentUser.role !== Role.ADMIN
+    ) {
       throw new NotAuthorizeError("Cant update show");
     }
-    startTime = startTime ?? show.startTime;
-    endTime = endTime ?? show.endTime;
-    bookingOpenAt = bookingOpenAt ?? show.bookingOpenAt;
+    startTime = startTime ?? existingShow.startTime;
+    endTime = endTime ?? existingShow.endTime;
+    bookingOpenAt = bookingOpenAt ?? existingShow.bookingOpenAt;
 
-    if (startTime <= new Date() || endTime <= new Date()) {
+    const now = new Date();
+
+    if (startTime <= now || endTime <= now) {
       throw new BadRequestError(
         "Show start time or end time must be in the future.",
       );
@@ -120,37 +106,47 @@ router.patch(
       );
     }
 
-    if (show?.status !== ShowStatusEnum.SCHEDULED) {
+    if (existingShow?.status !== ShowStatusEnum.SCHEDULED) {
       throw new BadRequestError("Show cant be updated");
     }
-    const overlappingShow = await prisma.show.findFirst({
-      where: {
-        id: {
-          not: show.id,
-        },
-        deleted: false,
-        screenId: show.screenId,
-        startTime: {
-          lt: endTime,
-        },
-        endTime: {
-          gt: startTime,
-        },
-      },
-    });
-    if (overlappingShow) {
-      throw new BadRequestError("Overlapping show");
-    }
 
-    const updatedShow = await prisma.show.update({
-      data: { status, startTime, endTime, bookingOpenAt },
-      where: {
-        id,
-        deleted: false,
-      },
-    });
+    prisma.$transaction(async (tx) => {
+      const overlappingShow = await prisma.show.findFirst({
+        where: {
+          id: {
+            not: existingShow.id,
+          },
+          deleted: false,
+          screenId: existingShow.screenId,
+          startTime: {
+            lt: endTime,
+          },
+          endTime: {
+            gt: startTime,
+          },
+        },
+      });
+      if (overlappingShow) {
+        throw new BadRequestError("Overlapping show");
+      }
 
-    res.status(201).send(updatedShow);
+      const updatedShow = await prisma.show.update({
+        data: {
+          startTime,
+          endTime,
+          bookingOpenAt,
+          version: {
+            increment: 1,
+          },
+        },
+        where: {
+          id,
+          deleted: false,
+        },
+      });
+
+      res.status(200).send(updatedShow);
+    });
   },
 );
 

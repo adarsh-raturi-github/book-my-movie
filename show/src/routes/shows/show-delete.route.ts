@@ -7,6 +7,11 @@ import {
   Permission,
   Role,
   requestValidatorMiddleware,
+  KafkaAggregateType,
+  KafkaTopic,
+  DomainEventTypes,
+  IShowSeatDeleteEventData,
+  createEnvelope,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { param } from "express-validator";
@@ -28,6 +33,7 @@ router.delete(
     const existingShow = await prisma.show.findUnique({
       where: {
         id,
+        deleted: false,
       },
     });
 
@@ -50,50 +56,91 @@ router.delete(
       throw new BadRequestError("Only scheduled shows can be deleted.");
     }
 
-    // Don't delete shows that already have bookings
-    const bookedSeats = await prisma.showSeat.count({
-      where: {
-        showId: id,
-        status: ShowSeatStatus.BOOKED,
-      },
-    });
-
-    if (bookedSeats > 0) {
-      throw new BadRequestError(
-        "Cannot delete a show with confirmed bookings.",
-      );
-    }
-
     const deletedShow = await prisma.$transaction(async (tx) => {
+      // Lock all active ShowSeat rows for this show before checking their status.
+      // This prevents concurrent booking/seat-lock operations from modifying
+      // these seats while the show deletion transaction is in progress.
+      const showSeats = await tx.$queryRaw<
+        {
+          id: string;
+          status: ShowSeatStatus;
+          version: number;
+        }[]
+      >`
+  SELECT id, status, version
+  FROM show_seat
+  WHERE show_id = ${id}
+    AND deleted = false
+  FOR UPDATE
+`;
+      const occupiedOrLockedSeats = showSeats.some(
+        (seat) =>
+          seat.status === ShowSeatStatus.BOOKED ||
+          seat.status === ShowSeatStatus.LOCKED,
+      );
+
+      if (occupiedOrLockedSeats) {
+        throw new BadRequestError(
+          "Cannot delete a show while seats are booked or locked.",
+        );
+      }
       const show = await tx.show.update({
         where: {
           id,
+          deleted: false,
         },
         data: {
+          version: {
+            increment: 1,
+          },
           deleted: true,
           deletedAt: new Date(),
           deletedBy: currentUser.id,
         },
       });
 
-      await tx.showSeat.updateMany({
+      const udatedShowSeats = await tx.showSeat.updateManyAndReturn({
         where: {
           showId: id,
+          deleted: false,
         },
         data: {
+          version: {
+            increment: 1,
+          },
           deleted: true,
           deletedAt: new Date(),
           deletedBy: currentUser.id,
         },
       });
 
-      // TODO:
-      // Insert ShowDeleted event into Outbox table here.
-
+      await tx.outbox.createMany({
+        data: udatedShowSeats.map(
+          (showSeat) =>
+            ({
+              aggregateType: KafkaAggregateType.SHOW_SEAT,
+              aggregateId: showSeat.id,
+              topic: KafkaTopic.SHOW_TOPIC,
+              eventType: DomainEventTypes.SHOW_SEAT_DELETED,
+              eventVersion: showSeat.version,
+              payload: createEnvelope<IShowSeatDeleteEventData>(
+                {
+                  topic: KafkaTopic.SHOW_TOPIC,
+                  eventType: DomainEventTypes.SHOW_SEAT_DELETED,
+                  serviceName: process.env.SERVICE_NAME!,
+                },
+                {
+                  id: showSeat.id,
+                  entityVersion: showSeat.version,
+                },
+              ),
+            }) as any,
+        ),
+      });
       return show;
     });
 
-    return res.status(200).send(deletedShow);
+    return res.status(204).send();
   },
 );
 

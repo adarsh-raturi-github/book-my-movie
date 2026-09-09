@@ -1,12 +1,18 @@
 import {
   BadRequestError,
   checkPermission,
+  createEnvelope,
+  DomainEventTypes,
+  IShowSeatCreateEventData,
+  KafkaAggregateType,
+  KafkaTopic,
   nonAuthorizeMiddleware,
   NotFoundError,
   Permission,
   requestValidatorMiddleware,
   ScreenTypeEnum,
   SeatTypeEnum,
+  ShowSeatStatusEnum,
 } from "@adarsh-tickets/shared";
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
@@ -140,7 +146,7 @@ router.post(
         },
       });
 
-      await tx.showSeat.createMany({
+      const showSeats = await tx.showSeat.createManyAndReturn({
         data: seats.map((seat) => {
           return {
             showId: show.id,
@@ -154,6 +160,36 @@ router.post(
             createdBy: req.currentUser!.id,
           };
         }),
+      });
+
+      await tx.outbox.createMany({
+        data: showSeats.map(
+          (showSeat) =>
+            ({
+              aggregateType: KafkaAggregateType.SHOW_SEAT,
+              aggregateId: showSeat.id,
+              topic: KafkaTopic.SHOW_TOPIC,
+              eventType: DomainEventTypes.SHOW_SEAT_CREATED,
+              eventVersion: 1,
+              payload: createEnvelope<IShowSeatCreateEventData>(
+                {
+                  topic: KafkaTopic.SHOW_TOPIC,
+                  eventType: DomainEventTypes.SHOW_SEAT_CREATED,
+                  serviceName: process.env.SERVICE_NAME!,
+                },
+                {
+                  id: showSeat.id,
+                  showId: showSeat.showId,
+                  seatId: showSeat.seatId,
+                  price: showSeat.price as unknown as number,
+                  status: showSeat.status as ShowSeatStatusEnum,
+                  bookingId: null,
+                  lockedUntil: null,
+                  entityVersion: showSeat.version,
+                },
+              ),
+            }) as any,
+        ),
       });
 
       return show;
