@@ -1,0 +1,364 @@
+erDiagram
+
+  %% AUTH DATABASE
+  AUTH_SERVICE {
+    string service "Auth Service Database"
+  }
+
+  AUTH_USERS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    VARCHAR_255 email UK "NOT NULL"
+    VARCHAR_20 phone UK "NOT NULL"
+    VARCHAR_255 password_hash "NOT NULL"
+    VARCHAR_100 first_name "NULL"
+    VARCHAR_100 last_name "NULL"
+    DATE date_of_birth "NULL"
+    GenderType gender "NULL"
+    UserStatus status "NOT NULL DEFAULT ACTIVE"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+  }
+
+  AUTH_ROLES {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    VARCHAR_255 name UK "NOT NULL"
+    TEXT_ARRAY permissions "NOT NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+  }
+
+  AUTH_USER_ROLES {
+    UUID userId PK "NOT NULL FK"
+    UUID roleId PK "NOT NULL FK"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+  }
+
+  AUTH_USERS ||--o{ AUTH_USER_ROLES : "userId CASCADE"
+  AUTH_ROLES ||--o{ AUTH_USER_ROLES : "roleId CASCADE"
+  AUTH_SERVICE ||--o{ AUTH_USERS : owns
+  AUTH_SERVICE ||--o{ AUTH_ROLES : owns
+  AUTH_SERVICE ||--o{ AUTH_USER_ROLES : owns
+
+  %% MOVIE DATABASE
+  MOVIE_SERVICE {
+    string service "Movie Service Database"
+  }
+
+  MOVIE_MOVIES {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    VARCHAR_255 title "NOT NULL INDEX"
+    TEXT description "NOT NULL"
+    INTEGER duration_minutes "NOT NULL"
+    TEXT_ARRAY languages "NOT NULL"
+    TEXT_ARRAY genres "NOT NULL"
+    MovieCertificate certificate "NOT NULL"
+    DATE release_date "NOT NULL INDEX"
+    VARCHAR_255 poster_key "NOT NULL"
+    MovieStatus status "NOT NULL DEFAULT ACTIVE INDEX"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+    INTEGER entity_version "NOT NULL DEFAULT 1"
+    UUID created_by "NOT NULL"
+    UUID updated_by "NULL"
+    UUID deleted_by "NULL"
+  }
+
+  MOVIE_OUTBOX {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    TEXT aggregate_type "NOT NULL"
+    UUID aggregate_id "NOT NULL"
+    TEXT topic "NOT NULL INDEX"
+    TEXT event_type "NOT NULL"
+    INTEGER event_version "NOT NULL"
+    JSONB payload "NOT NULL"
+    UUID correlation_id "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now() INDEX"
+    TIMESTAMP processed_at "NULL"
+  }
+
+  MOVIE_SERVICE ||--o{ MOVIE_MOVIES : owns
+  MOVIE_SERVICE ||--o{ MOVIE_OUTBOX : owns
+
+  %% THEATER DATABASE
+  THEATER_SERVICE {
+    string service "Theater Service Database"
+  }
+
+  THEATER_THEATERS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    VARCHAR_255 name "NOT NULL"
+    TEXT description "NULL"
+    UUID owner_id "NOT NULL INDEX"
+    VARCHAR_20 phone_number "NOT NULL"
+    VARCHAR_255 address_line1 "NOT NULL"
+    VARCHAR_255 address_line2 "NULL"
+    VARCHAR_100 city "NOT NULL INDEX"
+    VARCHAR_100 state "NOT NULL"
+    VARCHAR_100 country "NOT NULL"
+    VARCHAR_20 postal_code "NOT NULL"
+    VARCHAR_100 timezone "NOT NULL"
+    TheaterStatus status "NOT NULL DEFAULT ACTIVE INDEX"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    UUID created_by "NOT NULL"
+    UUID updated_by "NULL"
+    UUID deleted_by "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    TIMESTAMP deleted_at "NULL"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+  }
+
+  THEATER_SCREENS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    UUID theater_id FK "NOT NULL ON DELETE RESTRICT INDEX"
+    VARCHAR_100 name "NOT NULL"
+    TEXT description "NULL"
+    ScreenType type "NOT NULL DEFAULT REGULAR"
+    ScreenStatus status "NOT NULL DEFAULT ACTIVE INDEX"
+    INTEGER capacity "NOT NULL DEFAULT 0"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    UUID created_by "NOT NULL"
+    UUID updated_by "NULL"
+    UUID deleted_by "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    TIMESTAMP deleted_at "NULL"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+  }
+
+  THEATER_SEATS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    UUID screen_id FK "NOT NULL ON DELETE RESTRICT INDEX"
+    VARCHAR_10 row_label "NOT NULL"
+    INTEGER seat_number "NOT NULL"
+    SeatType seat_type "NOT NULL DEFAULT REGULAR"
+    SeatStatus status "NOT NULL DEFAULT ACTIVE INDEX"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    UUID created_by "NOT NULL"
+    UUID updated_by "NULL"
+    UUID deleted_by "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    TIMESTAMP deleted_at "NULL"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+  }
+
+  THEATER_OUTBOX {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    TEXT aggregate_type "NOT NULL"
+    UUID aggregate_id "NOT NULL"
+    TEXT topic "NOT NULL INDEX"
+    TEXT event_type "NOT NULL"
+    INTEGER event_version "NOT NULL"
+    JSONB payload "NOT NULL"
+    UUID correlation_id "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now() INDEX"
+    TIMESTAMP processed_at "NULL"
+  }
+
+  THEATER_THEATERS ||--o{ THEATER_SCREENS : "theater_id RESTRICT"
+  THEATER_SCREENS ||--o{ THEATER_SEATS : "screen_id RESTRICT"
+  THEATER_SERVICE ||--o{ THEATER_THEATERS : owns
+  THEATER_SERVICE ||--o{ THEATER_SCREENS : owns
+  THEATER_SERVICE ||--o{ THEATER_SEATS : owns
+  THEATER_SERVICE ||--o{ THEATER_OUTBOX : owns
+
+  %% SHOW DATABASE
+  SHOW_SERVICE {
+    string service "Show Service Database"
+  }
+
+  SHOW_SHOWS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    UUID movieId "NOT NULL LOGICAL REFERENCE INDEX"
+    UUID screenId "NOT NULL LOGICAL REFERENCE INDEX"
+    ShowStatus status "NOT NULL DEFAULT SCHEDULED INDEX"
+    TIMESTAMP startTime "NOT NULL INDEX"
+    TIMESTAMP endTime "NOT NULL"
+    TIMESTAMP bookingOpenAt "NOT NULL INDEX"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    UUID createdBy "NOT NULL"
+    UUID updatedBy "NULL"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deletedAt "NULL"
+    UUID deletedBy "NULL"
+  }
+
+  SHOW_SHOW_SEATS {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    UUID showId FK "NOT NULL ON DELETE CASCADE INDEX"
+    UUID seatId "NOT NULL LOGICAL REFERENCE INDEX"
+    DECIMAL_10_2 price "NOT NULL"
+    ShowSeatStatus status "NOT NULL DEFAULT AVAILABLE INDEX"
+    TIMESTAMP lockExpiresAt "NULL INDEX"
+    UUID bookingId "NULL LOGICAL REFERENCE INDEX"
+    INTEGER version "NOT NULL DEFAULT 1"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    UUID createdBy "NOT NULL"
+    UUID updatedBy "NULL"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deletedAt "NULL"
+    UUID deletedBy "NULL"
+  }
+
+  SHOW_SCREEN_PROJECTIONS {
+    UUID id PK "NOT NULL"
+    UUID theaterId "NOT NULL LOGICAL REFERENCE INDEX"
+    TEXT name "NOT NULL"
+    ScreenType type "NOT NULL"
+    ScreenStatus status "NOT NULL INDEX"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+  }
+
+  SHOW_MOVIE_PROJECTIONS {
+    UUID id PK "NOT NULL"
+    VARCHAR_255 title "NOT NULL INDEX"
+    INTEGER durationMinutes "NOT NULL"
+    TEXT_ARRAY language "NOT NULL INDEX"
+    MovieCertificate certificate "NOT NULL"
+    TEXT_ARRAY genres "NOT NULL"
+    TEXT posterUrl "NULL"
+    MovieStatus status "NOT NULL INDEX"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+  }
+
+  SHOW_SEAT_PROJECTIONS {
+    UUID id PK "NOT NULL"
+    UUID screenId "NOT NULL LOGICAL REFERENCE INDEX"
+    VARCHAR_10 rowLabel "NOT NULL"
+    INTEGER seatNumber "NOT NULL"
+    SeatType seatType "NOT NULL"
+    SeatStatus status "NOT NULL INDEX"
+    INTEGER entityVersion "NOT NULL DEFAULT 1"
+  }
+
+  SHOW_OUTBOX {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    TEXT aggregate_type "NOT NULL"
+    UUID aggregate_id "NOT NULL"
+    TEXT topic "NOT NULL INDEX"
+    TEXT event_type "NOT NULL"
+    INTEGER event_version "NOT NULL"
+    JSONB payload "NOT NULL"
+    UUID correlation_id "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now() INDEX"
+    TIMESTAMP processed_at "NULL"
+  }
+
+  SHOW_SHOWS ||--o{ SHOW_SHOW_SEATS : "showId CASCADE"
+  SHOW_SERVICE ||--o{ SHOW_SHOWS : owns
+  SHOW_SERVICE ||--o{ SHOW_SHOW_SEATS : owns
+  SHOW_SERVICE ||--o{ SHOW_SCREEN_PROJECTIONS : owns
+  SHOW_SERVICE ||--o{ SHOW_MOVIE_PROJECTIONS : owns
+  SHOW_SERVICE ||--o{ SHOW_SEAT_PROJECTIONS : owns
+  SHOW_SERVICE ||--o{ SHOW_OUTBOX : owns
+
+  %% BOOKING DATABASE
+  BOOKING_SERVICE {
+    string service "Booking Service Database"
+  }
+
+  BOOKING_BOOKING {
+    TEXT id PK "NOT NULL DEFAULT uuid()"
+    TEXT user_id "NOT NULL LOGICAL REFERENCE INDEX"
+    TEXT show_id "NOT NULL LOGICAL REFERENCE INDEX"
+    TEXT payment_id "NULL LOGICAL REFERENCE INDEX"
+    BookingStatus status "NOT NULL INDEX"
+    DECIMAL_10_2 total_amount "NOT NULL"
+    TIMESTAMP expires_at "NOT NULL INDEX"
+    INTEGER entity_version "NOT NULL DEFAULT 1"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+    TEXT deleted_by "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TEXT created_by "NOT NULL"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    TEXT updated_by "NULL"
+  }
+
+  BOOKING_BOOKING_SEAT {
+    TEXT id PK "NOT NULL DEFAULT uuid()"
+    TEXT booking_id FK "NOT NULL ON DELETE CASCADE INDEX"
+    TEXT show_seat_id "NOT NULL LOGICAL REFERENCE INDEX"
+    DECIMAL_10_2 price "NOT NULL"
+    BOOLEAN deleted "NOT NULL DEFAULT false"
+    TIMESTAMP deleted_at "NULL"
+    TEXT deleted_by "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TEXT created_by "NOT NULL"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+    TEXT updated_by "NULL"
+  }
+
+  BOOKING_SHOW_SEAT_PROJECTION {
+    TEXT id PK "NOT NULL"
+    TEXT show_id "NOT NULL LOGICAL REFERENCE INDEX"
+    TEXT seat_id "NOT NULL LOGICAL REFERENCE INDEX"
+    DECIMAL_10_2 price "NOT NULL"
+    ShowSeatStatus status "NOT NULL INDEX"
+    TEXT booking_id "NULL LOGICAL REFERENCE INDEX"
+    TIMESTAMP locked_until "NULL INDEX"
+    INTEGER entity_version "NOT NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now()"
+    TIMESTAMP updated_at "NOT NULL AUTO-UPDATE"
+  }
+
+  BOOKING_OUTBOX {
+    UUID id PK "NOT NULL DEFAULT uuid()"
+    TEXT aggregate_type "NOT NULL"
+    UUID aggregate_id "NOT NULL"
+    TEXT topic "NOT NULL INDEX"
+    TEXT event_type "NOT NULL"
+    INTEGER event_version "NOT NULL"
+    JSONB payload "NOT NULL"
+    UUID correlation_id "NULL"
+    TIMESTAMP created_at "NOT NULL DEFAULT now() INDEX"
+    TIMESTAMP processed_at "NULL"
+  }
+
+  BOOKING_BOOKING ||--o{ BOOKING_BOOKING_SEAT : "booking_id CASCADE"
+  BOOKING_SERVICE ||--o{ BOOKING_BOOKING : owns
+  BOOKING_SERVICE ||--o{ BOOKING_BOOKING_SEAT : owns
+  BOOKING_SERVICE ||--o{ BOOKING_SHOW_SEAT_PROJECTION : owns
+  BOOKING_SERVICE ||--o{ BOOKING_OUTBOX : owns
+
+  %% UNIQUE CONSTRAINTS
+  %% AUTH_USERS: UNIQUE(email), UNIQUE(phone)
+  %% AUTH_ROLES: UNIQUE(name)
+  %% AUTH_USER_ROLES: PRIMARY KEY(userId, roleId)
+  %% THEATER_THEATERS: UNIQUE(owner_id, name)
+  %% THEATER_SCREENS: UNIQUE(theater_id, name)
+  %% THEATER_SEATS: UNIQUE(screen_id, row_label, seat_number)
+  %% SHOW_SHOW_SEATS: UNIQUE(showId, seatId)
+  %% SHOW_SCREEN_PROJECTIONS: UNIQUE(theaterId, name)
+  %% SHOW_SEAT_PROJECTIONS: UNIQUE(screenId, rowLabel, seatNumber)
+
+  %% ENUM VALUES
+  %% UserStatus: ACTIVE, SUSPENDED, BLOCKED
+  %% GenderType: MALE, FEMALE, OTHER
+  %% MovieCertificate: U, UA, A
+  %% MovieStatus: ACTIVE, INACTIVE
+  %% TheaterStatus: ACTIVE, INACTIVE, SUSPENDED
+  %% ScreenStatus: ACTIVE, INACTIVE, UNDER_MAINTENANCE
+  %% ScreenType: REGULAR, IMAX, DOLBY, FOUR_DX
+  %% SeatType: REGULAR, PREMIUM, RECLINER, WHEELCHAIR
+  %% Theater SeatStatus: ACTIVE, BLOCKED, UNDER_MAINTENANCE
+  %% Show SeatStatus: ACTIVE, BLOCKED
+  %% ShowStatus: SCHEDULED, RUNNING, COMPLETED, CANCELLED
+  %% ShowSeatStatus: AVAILABLE, LOCKED, BOOKED, BLOCKED
+  %% BookingStatus: CREATED, PAYMENT_PENDING, CONFIRMED, CANCELLED, EXPIRED

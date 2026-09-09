@@ -8,5 +8,8 @@ resources:
   - kafka-connect.yaml
   - theater-connector.yaml
   - movie-connector.yaml
+  - show-connector.yaml
   - topics/movie-topic.yaml
   - topics/theater-topic.yaml
+  - topics/show-topic.yaml
+  - topics/booking-topic.yaml
