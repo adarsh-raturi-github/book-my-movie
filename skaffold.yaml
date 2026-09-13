@@ -8,6 +8,14 @@ build:
   local:
     push: false
   artifacts:
+    - image: adarsh893/book-my-movie-client
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
     - image: adarsh893/book-my-movie-auth
       context: auth
       docker:

@@ -74,12 +74,17 @@ router.post(
         role: Role.USER,
       },
       process.env.JWT_KEY!,
+      {
+        expiresIn: "15m",
+      },
     );
 
     res.status(201).send({
       id: createdUser.id,
       email: createdUser.email,
       phone: createdUser.phone,
+      role: Role.USER,
+      permissions: userRole?.permissions ?? [],
       token: userJWT,
     });
   },

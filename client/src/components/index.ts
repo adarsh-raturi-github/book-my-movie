@@ -1,0 +1,13 @@
+export { Header } from "./Header";
+export { HeroSection } from "./HeroSection";
+export { SearchFilter } from "./SearchFilter";
+export { MovieCard } from "./MovieCard";
+export { MoviesGrid } from "./MoviesGrid";
+export { CTASection } from "./CTASection";
+export { Footer } from "./Footer";
+export { Seat } from "./Seat";
+export { SeatRow } from "./SeatRow";
+export { SeatLayout } from "./SeatLayout";
+export { SeatLegend } from "./SeatLegend";
+export { SeatSummary } from "./SeatSummary";
+export type { Movie, MovieCategory } from "./types";
