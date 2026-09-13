@@ -6,3 +6,5 @@ export * from "./show-get.route";
 export * from "./show-list.route";
 
 export * from "./show-update.route";
+
+export * from "./show-cancel.route";

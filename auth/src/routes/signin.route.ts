@@ -46,7 +46,6 @@ router.post(
       throw new BadRequestError("Invalid Credentials");
     }
 
-    console.log("****", existingUser);
     const role = await prisma.role.findFirst({
       where: {
         id: existingUser.userRoles?.[0].roleId,
@@ -62,13 +61,19 @@ router.post(
         permissions: role?.permissions,
         role: role?.name,
       },
+
       process.env.JWT_KEY!,
+      {
+        expiresIn: "15m",
+      },
     );
 
     res.status(201).send({
       id: existingUser.id,
       email: existingUser.email,
       phone: existingUser.phone,
+      role: role?.name,
+      permissions: role?.permissions ?? [],
       token: userJWT,
     });
   },

@@ -45,3 +45,10 @@ spec:
                 name: show-cluster-ip-srv
                 port:
                   number: 3003
+          - path: /?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client-cluster-srv
+                port:
+                  number: 5173

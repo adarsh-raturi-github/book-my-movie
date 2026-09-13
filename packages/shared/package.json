@@ -1,6 +1,6 @@
 {
   "name": "@adarsh-tickets/shared",
-  "version": "1.0.45",
+  "version": "1.0.47",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "files": [
